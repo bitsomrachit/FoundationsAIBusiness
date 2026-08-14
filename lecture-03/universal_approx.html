@@ -2,21 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Add MathJax configuration and library -->
-    <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']]
-        }
-      };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Approximation - Weights, Biases & Functions</title>
+    <title>Universal Approximation - Nielsen Step Towers</title>
     <style>
         :root {
-            --bg-color: #0d0202;
+            --bg-color: #0c0202;
             --panel-bg: #1a0505;
             --border-color: #3d0c0c;
             --text-main: #fcebeb;
@@ -106,7 +96,7 @@
             background: rgba(10, 2, 2, 0.9);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 10px 15px;
+            padding: 12px 15px;
             margin-bottom: 15px;
             font-family: 'Courier New', Courier, monospace;
             font-size: 13px;
@@ -192,7 +182,7 @@
             font-size: 12px;
             color: var(--text-muted);
             justify-content: center;
-            margin-top: 10px;
+            margin-top: 12px;
         }
         .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 
@@ -203,15 +193,15 @@
 
     <div class="header">
         <h2>Universal Approximation Theorem</h2>
-        <p class="subtitle">Single Input $x \rightarrow$ Network Weights & Biases $\rightarrow$ Single Output $y$</p>
+        <p class="subtitle">Nielsen Step-Function Model: 2 Neurons = 1 Tower</p>
     </div>
 
     <div class="dashboard">
         
         <!-- Navigation -->
         <div class="tabs">
-            <button class="tab-btn active" id="tab1" onclick="switchMode(1)">1. Single Tower ($x \rightarrow y$ mapping via $w_1, w_2, b_1, b_2$)</button>
-            <button class="tab-btn" id="tab2" onclick="switchMode(2)">2. Fitting $(x, y)$ Samples into Any Function</button>
+            <button class="tab-btn active" id="tab1" onclick="switchMode(1)">1. Single Tower (2 Neurons: s₁, s₂, h, x → y)</button>
+            <button class="tab-btn" id="tab2" onclick="switchMode(2)">2. Multi-Tower Fitting (Arbitrary Functions)</button>
         </div>
 
         <!-- Canvas -->
@@ -224,66 +214,40 @@
             <!-- Populated via JavaScript -->
         </div>
 
-        <!-- CONTROLS MODE 1: 2 Hidden Neurons -->
+        <!-- CONTROLS MODE 1: Single Tower parameters -->
         <div class="controls" id="mode1-controls">
             <div class="control-grid">
-                <!-- Neuron 1 Controls -->
+                <!-- Step Position 1 -->
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span style="color:var(--orange-bright)">Neuron 1 Weight ($w_1$)</span>
-                        <span class="val" id="w1Val">60</span>
+                        <span style="color:var(--orange-bright)">Step 1 Threshold (s₁)</span>
+                        <span class="val" id="s1Val">0.30</span>
                     </div>
-                    <input type="range" id="w1Slider" min="-100" max="100" value="60">
+                    <input type="range" id="s1Slider" min="0" max="1" step="0.01" value="0.30">
                 </div>
                 
+                <!-- Step Position 2 -->
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span style="color:var(--orange-bright)">Neuron 1 Bias ($b_1$)</span>
-                        <span class="val" id="b1Val">-18</span>
+                        <span style="color:var(--cyan-bright)">Step 2 Threshold (s₂)</span>
+                        <span class="val" id="s2Val">0.70</span>
                     </div>
-                    <input type="range" id="b1Slider" min="-100" max="100" value="-18">
+                    <input type="range" id="s2Slider" min="0" max="1" step="0.01" value="0.70">
                 </div>
 
-                <!-- Neuron 2 Controls -->
+                <!-- Tower Height -->
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span style="color:var(--cyan-bright)">Neuron 2 Weight ($w_2$)</span>
-                        <span class="val" id="w2Val">60</span>
+                        <span>Output Weight / Height (h)</span>
+                        <span class="val" id="hVal">0.80</span>
                     </div>
-                    <input type="range" id="w2Slider" min="-100" max="100" value="60">
+                    <input type="range" id="hSlider" min="-1" max="1.5" step="0.05" value="0.80">
                 </div>
 
+                <!-- Input Probe X -->
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span style="color:var(--cyan-bright)">Neuron 2 Bias ($b_2$)</span>
-                        <span class="val" id="b2Val">-42</span>
-                    </div>
-                    <input type="range" id="b2Slider" min="-100" max="100" value="-42">
-                </div>
-
-                <!-- Output Layer Weights -->
-                <div class="slider-group">
-                    <div class="slider-header">
-                        <span>Output Weight 1 ($w_{out1}$)</span>
-                        <span class="val" id="wo1Val">1.0</span>
-                    </div>
-                    <input type="range" id="wo1Slider" min="-2" max="2" step="0.1" value="1.0">
-                </div>
-
-                <div class="slider-group">
-                    <div class="slider-header">
-                        <span>Output Weight 2 ($w_{out2}$)</span>
-                        <span class="val" id="wo2Val">-1.0</span>
-                    </div>
-                    <input type="range" id="wo2Slider" min="-2" max="2" step="0.1" value="-1.0">
-                </div>
-            </div>
-
-            <!-- Probe Input X -->
-            <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-                <div class="slider-group">
-                    <div class="slider-header">
-                        <span style="color:var(--white);">Test Input ($x$) Probe</span>
+                        <span style="color:var(--white);">Test Input (x) Probe</span>
                         <span class="val" id="xProbeVal">0.50</span>
                     </div>
                     <input type="range" id="xProbeSlider" min="0" max="1" step="0.01" value="0.50">
@@ -291,30 +255,30 @@
             </div>
 
             <div class="legend">
-                <div><span class="legend-dot" style="background:var(--orange-bright)"></span> Neuron 1: $a_1 = \sigma(w_1 x + b_1)$</div>
-                <div><span class="legend-dot" style="background:var(--cyan-bright)"></span> Neuron 2: $a_2 = \sigma(w_2 x + b_2)$</div>
-                <div><span class="legend-dot" style="background:var(--red-bright)"></span> Output: $y = w_{out1}a_1 + w_{out2}a_2$</div>
+                <div><span class="legend-dot" style="background:var(--orange-bright)"></span> Neuron 1: θ(x ≥ s₁)</div>
+                <div><span class="legend-dot" style="background:var(--cyan-bright)"></span> Neuron 2: θ(x ≥ s₂)</div>
+                <div><span class="legend-dot" style="background:var(--red-bright)"></span> Output Tower: y = h × [θ(x ≥ s₁) - θ(x ≥ s₂)]</div>
             </div>
         </div>
 
-        <!-- CONTROLS MODE 2: Function Approximation via Samples -->
+        <!-- CONTROLS MODE 2: Multi-Tower Approximation -->
         <div class="controls" id="mode2-controls">
             <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
                 <div style="flex: 1;">
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span>Number of Hidden Neuron Pairs ($N$):</span>
-                            <span class="val" id="pairCount">2</span>
+                            <span>Number of Neuron Pairs / Towers (N):</span>
+                            <span class="val" id="pairCount">3</span>
                         </div>
-                        <input type="range" id="nSlider" min="1" max="50" value="2">
+                        <input type="range" id="nSlider" min="1" max="50" value="3">
                     </div>
                 </div>
-                <button class="btn-action" id="btnTrain" onclick="toggleAutoTrain()">▶ Fit All $(x, y)$ Samples</button>
+                <button class="btn-action" id="btnTrain" onclick="toggleAutoTrain()">▶ Auto-Fit All (x, y) Samples</button>
             </div>
 
             <div class="legend" style="margin-top: 15px;">
-                <div><span class="legend-dot" style="background:#ffffff"></span> Sample Data Points $(x_i, y_i)$</div>
-                <div><span class="legend-dot" style="background:var(--red-bright)"></span> Neural Network Fit $y(x)$</div>
+                <div><span class="legend-dot" style="background:#ffffff"></span> Sample Points (xᵢ, yᵢ)</div>
+                <div><span class="legend-dot" style="background:var(--red-bright)"></span> Multi-Tower Neural Net Output y(x)</div>
             </div>
         </div>
 
@@ -325,12 +289,9 @@
         const ctx = canvas.getContext('2d');
         
         // Mode 1 Sliders
-        const w1Slider = document.getElementById('w1Slider');
-        const b1Slider = document.getElementById('b1Slider');
-        const w2Slider = document.getElementById('w2Slider');
-        const b2Slider = document.getElementById('b2Slider');
-        const wo1Slider = document.getElementById('wo1Slider');
-        const wo2Slider = document.getElementById('wo2Slider');
+        const s1Slider = document.getElementById('s1Slider');
+        const s2Slider = document.getElementById('s2Slider');
+        const hSlider = document.getElementById('hSlider');
         const xProbeSlider = document.getElementById('xProbeSlider');
 
         // Mode 2 Sliders
@@ -339,21 +300,21 @@
         const pairCount = document.getElementById('pairCount');
         const hudPanel = document.getElementById('hudPanel');
 
-        // Canvas dimensions
+        // Dimensions
         const width = canvas.width;
         const height = canvas.height;
         const padX = 50;
         const padY = 40;
         const drawW = width - padX * 2;
-        let drawH = height - padY * 2;
+        const drawH = height - padY * 2;
 
         let currentMode = 1;
         let isTraining = false;
         let trainInterval;
 
-        // Sigmoid Activation Function: \sigma(z) = 1 / (1 + e^{-z})
-        function sigmoid(z) {
-            return 1 / (1 + Math.exp(-Math.max(-50, Math.min(50, z))));
+        // Step Activation Function \theta(x \ge s)
+        function stepFn(x, threshold) {
+            return x >= threshold ? 1.0 : 0.0;
         }
 
         // Target Continuous Function for Tab 2
@@ -383,8 +344,8 @@
             ctx.font = '11px sans-serif';
             ctx.fillText('x = 0.0', padX - 10, height - padY + 20);
             ctx.fillText('x = 1.0', width - padX - 15, height - padY + 20);
-            ctx.fillText(`y = ${yMax}`, 10, padY + 5);
-            ctx.fillText(`y = ${yMin}`, 10, height - padY);
+            ctx.fillText(`y = ${yMax.toFixed(1)}`, 10, padY + 5);
+            ctx.fillText(`y = ${yMin.toFixed(1)}`, 10, height - padY);
         }
 
         function drawCurve(fn, color, lineWidth, dash = [], yMin = -0.5, yMax = 1.5) {
@@ -393,7 +354,7 @@
             ctx.lineWidth = lineWidth;
             ctx.setLineDash(dash);
 
-            for (let px = 0; px <= drawW; px += 2) {
+            for (let px = 0; px <= drawW; px++) {
                 let x = px / drawW;
                 let y = fn(x);
                 let py = height - padY - ((y - yMin) / (yMax - yMin)) * drawH;
@@ -406,44 +367,44 @@
         }
 
         function renderMode1() {
-            let w1 = parseFloat(w1Slider.value);
-            let b1 = parseFloat(b1Slider.value);
-            let w2 = parseFloat(w2Slider.value);
-            let b2 = parseFloat(b2Slider.value);
-            let wo1 = parseFloat(wo1Slider.value);
-            let wo2 = parseFloat(wo2Slider.value);
+            let s1 = parseFloat(s1Slider.value);
+            let s2 = parseFloat(s2Slider.value);
+            let h = parseFloat(hSlider.value);
             let xProbe = parseFloat(xProbeSlider.value);
 
-            // Update UI label text
-            document.getElementById('w1Val').innerText = w1;
-            document.getElementById('b1Val').innerText = b1;
-            document.getElementById('w2Val').innerText = w2;
-            document.getElementById('b2Val').innerText = b2;
-            document.getElementById('wo1Val').innerText = wo1.toFixed(1);
-            document.getElementById('wo2Val').innerText = wo2.toFixed(1);
+            // Ensure s1 <= s2 for proper tower visualization
+            if (s1 > s2) {
+                s2 = s1;
+                s2Slider.value = s1;
+            }
+
+            // Update UI text
+            document.getElementById('s1Val').innerText = s1.toFixed(2);
+            document.getElementById('s2Val').innerText = s2.toFixed(2);
+            document.getElementById('hVal').innerText = h.toFixed(2);
             document.getElementById('xProbeVal').innerText = xProbe.toFixed(2);
 
-            let yMin = -1.0, yMax = 1.5;
+            let yMin = -0.5, yMax = 1.5;
             drawGrid(yMin, yMax);
 
-            // Hidden Activations
-            let n1Fn = x => sigmoid(w1 * x + b1);
-            let n2Fn = x => sigmoid(w2 * x + b2);
-            let outFn = x => wo1 * n1Fn(x) + wo2 * n2Fn(x);
+            // Step & Tower Functions
+            let n1Fn = x => stepFn(x, s1);
+            let n2Fn = x => stepFn(x, s2);
+            let towerFn = x => h * (stepFn(x, s1) - stepFn(x, s2));
 
-            // Draw individual neuron activations
+            // Draw individual step functions
             drawCurve(n1Fn, '#ff9900', 2, [4, 4], yMin, yMax);
             drawCurve(n2Fn, '#00e5ff', 2, [4, 4], yMin, yMax);
 
-            // Draw combined network output y(x)
-            drawCurve(outFn, '#ff3333', 4, [], yMin, yMax);
+            // Draw output tower
+            drawCurve(towerFn, '#ff3333', 4, [], yMin, yMax);
 
-            // Evaluate specific x probe
+            // Evaluate probe point x
             let a1_probe = n1Fn(xProbe);
             let a2_probe = n2Fn(xProbe);
-            let y_probe = outFn(xProbe);
+            let y_probe = towerFn(xProbe);
 
-            // Draw Crosshair for Probe X
+            // Draw vertical crosshair at probe position x
             let pxProbe = padX + xProbe * drawW;
             let pyProbe = height - padY - ((y_probe - yMin) / (yMax - yMin)) * drawH;
 
@@ -452,17 +413,17 @@
             ctx.beginPath(); ctx.moveTo(pxProbe, padY); ctx.lineTo(pxProbe, height - padY); ctx.stroke();
             ctx.setLineDash([]);
 
-            // Dot at output y
+            // Dot on output curve
             ctx.fillStyle = '#ff3333';
             ctx.beginPath(); ctx.arc(pxProbe, pyProbe, 6, 0, Math.PI * 2); ctx.fill();
             ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
 
-            // Update HUD
+            // HUD display
             hudPanel.innerHTML = `
                 <div class="hud-item">Input: <span class="hud-val">x = ${xProbe.toFixed(2)}</span></div>
-                <div class="hud-item">a₁ = σ(${w1}x + ${b1}) = <span class="hud-val" style="color:var(--orange-bright)">${a1_probe.toFixed(2)}</span></div>
-                <div class="hud-item">a₂ = σ(${w2}x + ${b2}) = <span class="hud-val" style="color:var(--cyan-bright)">${a2_probe.toFixed(2)}</span></div>
-                <div class="hud-item">Output: <span class="hud-val" style="color:var(--red-bright)">y = (${wo1.toFixed(1)})(a₁) + (${wo2.toFixed(1)})(a₂) = ${y_probe.toFixed(2)}</span></div>
+                <div class="hud-item">Neuron 1: <span class="hud-val" style="color:var(--orange-bright)">θ(x ≥ ${s1.toFixed(2)}) = ${a1_probe.toFixed(0)}</span></div>
+                <div class="hud-item">Neuron 2: <span class="hud-val" style="color:var(--cyan-bright)">θ(x ≥ ${s2.toFixed(2)}) = ${a2_probe.toFixed(0)}</span></div>
+                <div class="hud-item">Output: <span class="hud-val" style="color:var(--red-bright)">y = ${h.toFixed(2)} × (${a1_probe.toFixed(0)} - ${a2_probe.toFixed(0)}) = ${y_probe.toFixed(2)}</span></div>
             `;
         }
 
@@ -473,7 +434,7 @@
             let yMin = -0.2, yMax = 1.2;
             drawGrid(yMin, yMax);
 
-            // Sample data points along target function
+            // Generate sample data points along target function
             let sampleCount = 20;
             let samples = [];
             for (let i = 0; i <= sampleCount; i++) {
@@ -490,33 +451,28 @@
                 ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
             });
 
-            // Reconstruct network function with N pairs
-            let w_steep = 200; // Steepness for clean step conversion
-            let nnFunction = function(x) {
+            // Multi-tower function combining N pairs
+            let multiTowerFn = function(x) {
                 let sum = 0;
                 for (let i = 0; i < N; i++) {
                     let s1 = i / N;
                     let s2 = (i + 1) / N;
                     let mid = (s1 + s2) / 2;
-                    let targetY = targetFunction(mid);
+                    let h_i = targetFunction(mid);
 
-                    // Neuron 1 & 2 activations forming tower i
-                    let a1 = sigmoid(w_steep * (x - s1));
-                    let a2 = sigmoid(w_steep * (x - s2));
-
-                    // Add scaled bump to total y output
-                    sum += targetY * (a1 - a2);
+                    // Add tower i to net output
+                    sum += h_i * (stepFn(x, s1) - stepFn(x, s2));
                 }
                 return sum;
             };
 
-            // Draw Fitted NN Output Curve (Red)
-            drawCurve(nnFunction, '#ff3333', 3.5, [], yMin, yMax);
+            // Draw combined multi-tower curve
+            drawCurve(multiTowerFn, '#ff3333', 3.5, [], yMin, yMax);
 
-            // Calculate Mean Squared Error (MSE) across samples
+            // Calculate Mean Squared Error (MSE)
             let mse = 0;
             samples.forEach(pt => {
-                let pred = nnFunction(pt.x);
+                let pred = multiTowerFn(pt.x);
                 mse += Math.pow(pred - pt.y, 2);
             });
             mse /= samples.length;
@@ -524,8 +480,8 @@
             // Update HUD
             hudPanel.innerHTML = `
                 <div class="hud-item">Sample Points: <span class="hud-val">${samples.length}</span></div>
-                <div class="hud-item">Hidden Neuron Pairs: <span class="hud-val">${N}</span></div>
-                <div class="hud-item">Total Trainable Weights & Biases: <span class="hud-val">${N * 6}</span></div>
+                <div class="hud-item">Towers (Neuron Pairs): <span class="hud-val">${N}</span></div>
+                <div class="hud-item">Total Neurons: <span class="hud-val">${N * 2}</span></div>
                 <div class="hud-item">Fitting Error (MSE): <span class="hud-val" style="color:${mse < 0.01 ? '#00ff88' : 'var(--red-bright)'}">${mse.toFixed(5)}</span></div>
             `;
         }
@@ -549,7 +505,7 @@
         function toggleAutoTrain() {
             if (isTraining) {
                 clearInterval(trainInterval);
-                btnTrain.innerText = "▶ Fit All (x, y) Samples";
+                btnTrain.innerText = "▶ Auto-Fit All (x, y) Samples";
                 isTraining = false;
             } else {
                 isTraining = true;
@@ -569,7 +525,7 @@
         }
 
         // Event Listeners
-        [w1Slider, b1Slider, w2Slider, b2Slider, wo1Slider, wo2Slider, xProbeSlider].forEach(slider => {
+        [s1Slider, s2Slider, hSlider, xProbeSlider].forEach(slider => {
             slider.addEventListener('input', updateViz);
         });
         nSlider.addEventListener('input', updateViz);
