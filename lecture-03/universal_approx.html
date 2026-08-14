@@ -3,12 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Approximation Theorem</title>
+    <title>Universal Approximation - Deep Learning</title>
     <style>
+        :root {
+            --bg-color: #0f0202;
+            --panel-bg: #1c0505;
+            --border-color: #3a0a0a;
+            --text-main: #f8e5e5;
+            --text-muted: #d49a9a;
+            --red-bright: #ff3333;
+            --red-dark: #cc0000;
+            --red-glow: rgba(255, 51, 51, 0.5);
+            --white: #ffffff;
+        }
+
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0f172a; /* Deep slate blue */
-            color: #f8fafc;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -17,329 +29,397 @@
             margin: 0;
             overflow: hidden;
         }
+
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
-        h2 { margin: 0 0 5px 0; color: #38bdf8; font-size: 28px; }
-        p.subtitle { margin: 0; color: #94a3b8; font-size: 15px; }
-        
+        h2 { margin: 0 0 5px 0; color: var(--red-bright); font-size: 26px; text-transform: uppercase; letter-spacing: 1px;}
+        p.subtitle { margin: 0; color: var(--text-muted); font-size: 15px; }
+
         .dashboard {
-            background-color: #1e293b;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            border: 1px solid #334155;
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            border: 1px solid var(--border-color);
+            width: 800px;
+        }
+
+        /* Tabs */
+        .tabs {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background-color: var(--bg-color);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background-color: var(--red-dark);
+            color: var(--white);
+            border-color: var(--red-bright);
+            box-shadow: 0 0 15px rgba(204, 0, 0, 0.4);
         }
 
         .canvas-container {
             position: relative;
-            background-color: #0f172a;
+            background-color: var(--bg-color);
             border-radius: 8px;
-            border: 1px solid #475569;
-            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
         }
-
         canvas { display: block; }
 
         .controls {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
             gap: 20px;
-            background-color: #0f172a;
+            background-color: var(--bg-color);
             padding: 15px 20px;
             border-radius: 8px;
-            border: 1px solid #475569;
+            border: 1px solid var(--border-color);
+            min-height: 80px;
         }
 
-        .slider-group {
+        .control-group {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
+            justify-content: center;
         }
 
-        .slider-header {
+        .slider-row {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #e2e8f0;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
         }
-
+        .slider-row:last-child { margin-bottom: 0; }
+        .slider-label { width: 140px; font-size: 13px; color: var(--text-muted); font-weight: bold;}
+        
         input[type=range] {
+            flex: 1;
             -webkit-appearance: none;
-            width: 100%;
             background: transparent;
         }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 20px;
-            width: 20px;
+            height: 16px;
+            width: 16px;
             border-radius: 50%;
-            background: #38bdf8;
+            background: var(--red-bright);
             cursor: pointer;
-            margin-top: -8px;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            margin-top: -6px;
+            box-shadow: 0 0 8px var(--red-glow);
         }
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
             height: 4px;
             cursor: pointer;
-            background: #475569;
+            background: var(--border-color);
             border-radius: 2px;
         }
 
-        .metrics {
-            display: flex;
-            gap: 20px;
-        }
-
-        .metric-box {
-            background-color: #1e293b;
-            padding: 10px 15px;
-            border-radius: 6px;
-            border: 1px solid #334155;
-            text-align: center;
-            min-width: 100px;
-        }
-        .metric-value { font-size: 20px; font-weight: bold; color: #38bdf8; }
-        .metric-label { font-size: 11px; text-transform: uppercase; color: #94a3b8; margin-top: 4px; letter-spacing: 1px; }
-
-        .btn-animate {
-            background-color: #38bdf8;
-            color: #0f172a;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-animate:hover { background-color: #7dd3fc; transform: scale(1.05); }
-
         .legend {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 10px;
+            text-align: center;
             display: flex;
             justify-content: center;
             gap: 20px;
-            font-size: 13px;
-            color: #cbd5e1;
-            margin-top: -5px;
         }
         .legend-item { display: flex; align-items: center; gap: 6px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .dot-target { background-color: #f43f5e; box-shadow: 0 0 8px #f43f5e; }
-        .dot-approx { background-color: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+
+        .btn-action {
+            background-color: var(--red-dark);
+            color: var(--white);
+            border: 1px solid var(--red-bright);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            height: 40px;
+            align-self: center;
+        }
+        .btn-action:hover {
+            background-color: var(--red-bright);
+            box-shadow: 0 0 15px var(--red-glow);
+        }
+
+        #mode2-controls { display: none; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h2>Universal Approximation Theorem</h2>
-        <p class="subtitle">A single hidden layer can approximate any continuous function</p>
+        <p class="subtitle">How Neural Networks construct functions piece by piece</p>
     </div>
 
     <div class="dashboard">
+        
+        <div class="tabs">
+            <button class="tab-btn active" id="tab1" onclick="switchMode(1)">1. The Building Block (2 Neurons)</button>
+            <button class="tab-btn" id="tab2" onclick="switchMode(2)">2. Full Network Approximation</button>
+        </div>
+
         <div class="canvas-container">
-            <canvas id="mathCanvas" width="800" height="400"></canvas>
+            <canvas id="mathCanvas" width="760" height="350"></canvas>
         </div>
 
-        <div class="legend">
-            <div class="legend-item"><div class="dot dot-target"></div> Arbitrary Target Function $f(x)$</div>
-            <div class="legend-item"><div class="dot dot-approx"></div> Neural Network Approximation $\hat{f}(x)$</div>
-        </div>
-
-        <div class="controls">
-            <div class="slider-group">
-                <div class="slider-header">
-                    <span>Network Width (Neuron Pairs)</span>
-                    <span id="neuronCount">3</span>
+        <!-- MODE 1 CONTROLS: Building a Tower -->
+        <div class="controls" id="mode1-controls">
+            <div class="control-group">
+                <div class="slider-row">
+                    <div class="slider-label">Neuron 1 (Step Up)</div>
+                    <input type="range" id="s1Slider" min="0" max="100" value="30">
                 </div>
-                <input type="range" id="neuronSlider" min="1" max="100" value="3">
-            </div>
-            
-            <button class="btn-animate" id="btnAnimate" onclick="playAnimation()">▶ Auto-Train</button>
-
-            <div class="metrics">
-                <div class="metric-box">
-                    <div class="metric-value" id="mseValue">0.000</div>
-                    <div class="metric-label">MSE Loss</div>
+                <div class="slider-row">
+                    <div class="slider-label">Neuron 2 (Step Down)</div>
+                    <input type="range" id="s2Slider" min="0" max="100" value="50">
+                </div>
+                <div class="slider-row">
+                    <div class="slider-label">Output Weight (Height)</div>
+                    <input type="range" id="hSlider" min="-100" max="100" value="80">
                 </div>
             </div>
         </div>
+
+        <!-- MODE 2 CONTROLS: Universal Approximation -->
+        <div class="controls" id="mode2-controls">
+            <div class="control-group">
+                <div class="slider-row">
+                    <div class="slider-label" style="width: 200px;">Number of Neuron Pairs: <span id="pairCount" style="color:var(--red-bright);">3</span></div>
+                    <input type="range" id="nSlider" min="1" max="100" value="3">
+                </div>
+                <div class="legend" id="mode2-legend">
+                    <div class="legend-item"><div class="dot" style="background:#fff; box-shadow: 0 0 5px #fff;"></div> Target Function</div>
+                    <div class="legend-item"><div class="dot" style="background:var(--red-bright); box-shadow: 0 0 8px var(--red-bright);"></div> Neural Network Sum</div>
+                </div>
+            </div>
+            <button class="btn-action" id="btnTrain" onclick="toggleAutoTrain()">▶ Auto-Train</button>
+        </div>
+
     </div>
 
     <script>
         const canvas = document.getElementById('mathCanvas');
         const ctx = canvas.getContext('2d');
-        const slider = document.getElementById('neuronSlider');
-        const countDisplay = document.getElementById('neuronCount');
-        const mseDisplay = document.getElementById('mseValue');
         
+        // UI Elements
+        const s1Slider = document.getElementById('s1Slider');
+        const s2Slider = document.getElementById('s2Slider');
+        const hSlider = document.getElementById('hSlider');
+        const nSlider = document.getElementById('nSlider');
+        const pairCount = document.getElementById('pairCount');
+        const btnTrain = document.getElementById('btnTrain');
+
+        // Dimensions
         let width = canvas.width;
         let height = canvas.height;
-        let padding = 40;
-        let drawWidth = width - padding * 2;
-        let drawHeight = height - padding * 2;
-        
-        let isAnimating = false;
-        let animationInterval;
+        let padX = 40;
+        let padY = 40;
+        let drawW = width - padX * 2;
+        let drawH = height - padY * 2;
 
-        // The Arbitrary Target Function (normalized to 0-1 range roughly)
+        let currentMode = 1; // 1 = Building Block, 2 = Approximation
+        let isTraining = false;
+        let trainInterval;
+
+        // Sigmoid Activation Function (with very high weight to act as a step)
+        const steepness = 300;
+        function sigmoid(x, shift) {
+            return 1 / (1 + Math.exp(-steepness * (x - shift)));
+        }
+
+        // Arbitrary Target Function (normalized 0 to 1)
         function targetFunction(x) {
-            // A complex curve: combination of sine waves and a polynomial
-            return 0.5 
-                 + 0.25 * Math.sin(x * Math.PI * 3.5) 
-                 + 0.15 * Math.cos(x * Math.PI * 8) 
-                 - 0.1 * Math.pow(x - 0.5, 2);
+            return 0.5 + 0.3 * Math.sin(x * Math.PI * 3) - 0.2 * Math.cos(x * Math.PI * 7.5);
         }
 
         function drawGrid() {
             ctx.clearRect(0, 0, width, height);
-            ctx.strokeStyle = '#1e293b';
-            ctx.lineWidth = 1;
             
             // Grid lines
+            ctx.strokeStyle = '#2a0505';
+            ctx.lineWidth = 1;
             for(let i=0; i<=10; i++) {
-                let x = padding + (i/10) * drawWidth;
-                let y = padding + (i/10) * drawHeight;
-                
-                ctx.beginPath(); ctx.moveTo(x, padding); ctx.lineTo(x, height-padding); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(width-padding, y); ctx.stroke();
+                let x = padX + (i/10) * drawW;
+                let y = padY + (i/10) * drawH;
+                ctx.beginPath(); ctx.moveTo(x, padY); ctx.lineTo(x, height-padY); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(width-padX, y); ctx.stroke();
             }
 
-            // Axes
-            ctx.strokeStyle = '#64748b';
+            // Zero Axis (Middle)
+            ctx.strokeStyle = '#4a1515';
             ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(padding, height - padding);
-            ctx.lineTo(width - padding, height - padding); // X
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, height - padding); // Y
-            ctx.stroke();
+            let zeroY = height - padY - (drawH / 2);
+            ctx.beginPath(); ctx.moveTo(padX, zeroY); ctx.lineTo(width-padX, zeroY); ctx.stroke();
         }
 
-        function drawTargetCurve() {
+        function drawLine(fn, color, lineWidth, dash = [], shadow = false) {
             ctx.beginPath();
-            ctx.strokeStyle = '#f43f5e'; // Rose color
-            ctx.lineWidth = 3;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = 'rgba(244, 63, 94, 0.5)';
-
-            for (let px = 0; px <= drawWidth; px++) {
-                let normalizedX = px / drawWidth;
-                let normalizedY = targetFunction(normalizedX);
-                let py = height - padding - (normalizedY * drawHeight);
-                
-                if (px === 0) ctx.moveTo(padding + px, py);
-                else ctx.lineTo(padding + px, py);
-            }
-            ctx.stroke();
-            ctx.shadowBlur = 0; // reset
-        }
-
-        function drawApproximation(numNeurons) {
-            let towerWidth = drawWidth / numNeurons;
-            let totalError = 0;
-            let sampleCount = 0;
-
-            // Draw the "towers" (Riemann sum style)
-            for (let i = 0; i < numNeurons; i++) {
-                let startX = i * towerWidth;
-                let endX = (i + 1) * towerWidth;
-                let midX = (startX + endX) / 2;
-                
-                let normalizedMidX = midX / drawWidth;
-                let towerHeightNorm = targetFunction(normalizedMidX);
-                let towerHeightPx = towerHeightNorm * drawHeight;
-                
-                let pxStartX = padding + startX;
-                let pyTop = height - padding - towerHeightPx;
-
-                // Draw filled bump
-                ctx.fillStyle = 'rgba(56, 189, 248, 0.15)'; // Translucent blue
-                ctx.fillRect(pxStartX, pyTop, towerWidth, towerHeightPx);
-                
-                // Draw tower outline
-                ctx.strokeStyle = '#0ea5e9';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(pxStartX, pyTop, towerWidth, towerHeightPx);
-
-                // Draw top "step" line
-                ctx.beginPath();
-                ctx.moveTo(pxStartX, pyTop);
-                ctx.lineTo(pxStartX + towerWidth, pyTop);
-                ctx.strokeStyle = '#38bdf8';
-                ctx.lineWidth = 3;
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = '#38bdf8';
-                ctx.stroke();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.setLineDash(dash);
+            if(shadow) {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = color;
+            } else {
                 ctx.shadowBlur = 0;
             }
 
-            // Calculate Mean Squared Error (MSE)
-            for (let px = 0; px <= drawWidth; px++) {
-                let normalizedX = px / drawWidth;
-                let actualY = targetFunction(normalizedX);
+            for (let px = 0; px <= drawW; px += 2) {
+                let xNorm = px / drawW;
+                let yNorm = fn(xNorm); // expected -1 to 1 for mode 1, 0 to 1 for mode 2
                 
-                let activeTowerIndex = Math.floor(px / towerWidth);
-                if (activeTowerIndex >= numNeurons) activeTowerIndex = numNeurons - 1;
-                
-                let towerMidX = ((activeTowerIndex + 0.5) * towerWidth) / drawWidth;
-                let predictedY = targetFunction(towerMidX);
-                
-                totalError += Math.pow(actualY - predictedY, 2);
-                sampleCount++;
-            }
-            
-            let mse = totalError / sampleCount;
-            mseDisplay.innerText = mse.toFixed(4);
-        }
-
-        function updateVisualization() {
-            let neurons = parseInt(slider.value);
-            countDisplay.innerText = neurons;
-            drawGrid();
-            drawApproximation(neurons);
-            drawTargetCurve(); // Draw target on top
-        }
-
-        function playAnimation() {
-            if (isAnimating) {
-                clearInterval(animationInterval);
-                document.getElementById('btnAnimate').innerText = "▶ Auto-Train";
-                isAnimating = false;
-                return;
-            }
-            
-            isAnimating = true;
-            document.getElementById('btnAnimate').innerText = "⏸ Pause";
-            slider.value = 1;
-            
-            animationInterval = setInterval(() => {
-                let currentVal = parseInt(slider.value);
-                if (currentVal >= 100) {
-                    clearInterval(animationInterval);
-                    document.getElementById('btnAnimate').innerText = "▶ Auto-Train";
-                    isAnimating = false;
+                // Map to canvas Y (middle is 0 for Mode 1, bottom is 0 for Mode 2)
+                let py;
+                if (currentMode === 1) {
+                    py = height - padY - ((yNorm + 1) / 2) * drawH; 
                 } else {
-                    // Start slow, accelerate as it goes
-                    let increment = currentVal < 20 ? 1 : (currentVal < 50 ? 2 : 5);
-                    slider.value = Math.min(100, currentVal + increment);
-                    updateVisualization();
+                    py = height - padY - yNorm * drawH;
                 }
-            }, 150);
+
+                if (px === 0) ctx.moveTo(padX + px, py);
+                else ctx.lineTo(padX + px, py);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]); // reset
+            ctx.shadowBlur = 0; // reset
+        }
+
+        function renderMode1() {
+            let s1 = parseInt(s1Slider.value) / 100;
+            let s2 = parseInt(s2Slider.value) / 100;
+            let h = parseInt(hSlider.value) / 100;
+
+            // Ensure s1 is always before s2 visually to avoid confusion
+            if (s1 > s2) { let temp = s1; s1 = s2; s2 = temp; }
+
+            drawGrid();
+
+            // Draw Neuron 1: +sigmoid(x - s1)
+            drawLine(x => sigmoid(x, s1), 'rgba(255, 100, 100, 0.4)', 2, [5, 5]);
+            
+            // Draw Neuron 2: -sigmoid(x - s2)
+            drawLine(x => -sigmoid(x, s2), 'rgba(200, 50, 50, 0.4)', 2, [5, 5]);
+
+            // Draw The Tower (Neuron 1 + Neuron 2) * Height
+            drawLine(x => h * (sigmoid(x, s1) - sigmoid(x, s2)), '#ff3333', 4, [], true);
+
+            // Labels
+            ctx.fillStyle = '#ff3333';
+            ctx.font = '14px Arial';
+            ctx.fillText(`Output = ${h.toFixed(2)} * (Neuron1 - Neuron2)`, padX + 20, padY + 20);
+        }
+
+        function renderMode2() {
+            let N = parseInt(nSlider.value);
+            pairCount.innerText = N;
+            
+            drawGrid();
+
+            // Draw Target Function (White)
+            drawLine(x => targetFunction(x), '#ffffff', 2, [], true);
+
+            // Define the Neural Network sum function
+            let nnFunction = function(x) {
+                let sum = 0;
+                for(let i = 0; i < N; i++) {
+                    let s1 = i / N;
+                    let s2 = (i + 1) / N;
+                    let mid = (s1 + s2) / 2;
+                    let h = targetFunction(mid); // Weight needed to reach target
+                    
+                    // Add this tower to the total network output
+                    sum += h * (sigmoid(x, s1) - sigmoid(x, s2));
+                }
+                return sum;
+            };
+
+            // Draw the Neural Network Approximation (Red)
+            drawLine(nnFunction, '#ff3333', 4, [], true);
+
+            // Fill under the curve slightly for effect
+            ctx.beginPath();
+            for (let px = 0; px <= drawW; px += 5) {
+                let xNorm = px / drawW;
+                let py = height - padY - nnFunction(xNorm) * drawH;
+                if (px === 0) ctx.moveTo(padX + px, py);
+                else ctx.lineTo(padX + px, py);
+            }
+            ctx.lineTo(padX + drawW, height - padY);
+            ctx.lineTo(padX, height - padY);
+            ctx.fillStyle = 'rgba(255, 51, 51, 0.1)';
+            ctx.fill();
+        }
+
+        function updateViz() {
+            if (currentMode === 1) renderMode1();
+            else renderMode2();
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Toggle Buttons
+            document.getElementById('tab1').classList.toggle('active', mode === 1);
+            document.getElementById('tab2').classList.toggle('active', mode === 2);
+            
+            // Toggle Controls
+            document.getElementById('mode1-controls').style.display = mode === 1 ? 'flex' : 'none';
+            document.getElementById('mode2-controls').style.display = mode === 2 ? 'flex' : 'none';
+
+            // Reset Training
+            if(isTraining) toggleAutoTrain();
+
+            updateViz();
+        }
+
+        function toggleAutoTrain() {
+            if (isTraining) {
+                clearInterval(trainInterval);
+                btnTrain.innerText = "▶ Auto-Train";
+                isTraining = false;
+            } else {
+                isTraining = true;
+                btnTrain.innerText = "⏸ Pause";
+                nSlider.value = 1;
+                
+                trainInterval = setInterval(() => {
+                    let val = parseInt(nSlider.value);
+                    if (val >= 100) {
+                        toggleAutoTrain();
+                    } else {
+                        let step = val < 20 ? 1 : (val < 50 ? 2 : 4);
+                        nSlider.value = Math.min(100, val + step);
+                        updateViz();
+                    }
+                }, 150);
+            }
         }
 
         // Event Listeners
-        slider.addEventListener('input', updateVisualization);
+        s1Slider.addEventListener('input', updateViz);
+        s2Slider.addEventListener('input', updateViz);
+        hSlider.addEventListener('input', updateViz);
+        nSlider.addEventListener('input', updateViz);
 
-        // Initial Draw
-        updateVisualization();
+        // Init
+        updateViz();
 
     </script>
 </body>
