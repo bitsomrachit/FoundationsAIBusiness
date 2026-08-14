@@ -1,40 +1,36 @@
 # 🚀 Foundations of AI for Business Applications
 *Repository for Course Material, Interactive Dashboards, and Hands-On Exercises*
 
-Welcome to the central hub for our AI in Business course! Here you will find all lecture slides, datasets, code notebooks, and links to our live interactive exercises.
+Welcome to the central hub for our AI in Business course! Here you will find all code files and links to our live interactive exercises.
 
 ---
 
-## 📅 Lecture Index
+## 📅 Course Materials
 
-Click on the **View Folder** links to access the slides and datasets for that specific class. Click the **Interactive Task** links to launch the hands-on exercises directly in your browser.
+### Lecture 03: The ML Bottleneck & Deep Learning Scaling
+[📁 View Lecture 03 Folder](./lecture-03/)
 
-| Lecture | Topic & Core Concept | Course Materials | Interactive Hands-On Task |
-| :---: | :--- | :--- | :--- |
-| **01** | **Beyond Traditional ML:** The Performance Ceiling | [📁 View Folder](./lecture-01/) | [📊 Run Fraud Scaling Dashboard](https://your-dashboard.streamlit.app) |
-| **02** | **Computer Vision:** Automating Visual Inspection | [📁 View Folder](./lecture-02/) | [🚀 Open Jupyter in Colab](https://colab.research.google.com/github/<your-username>/<repo-name>/blob/main/lecture-02/exercise.ipynb) |
-| **03** | **NLP & LLMs:** Unstructured Text Data | [📁 View Folder](./lecture-03/) | *Coming Soon* |
-| **04** | **Time Series:** Demand Forecasting | [📁 View Folder](./lecture-04/) | *Coming Soon* |
+**Task 1: Enterprise Fraud Scaling Dashboard**  
+Simulate how traditional ML (Linear/XGBoost) compares to Deep Learning as dataset sizes grow to 10M+ rows.
+* 📊 **[Launch Live Dashboard](https://your-dashboard.streamlit.app)**
+* 💻 **[View Dashboard Source Code (`app.py`)](./lecture-03/app.py)**
+* 📦 **[View Dependencies (`requirements.txt`)](./lecture-03/requirements.txt)**
 
----
-
-## 🛠️ How to Access the Hands-On Exercises
-
-To ensure everyone can participate without spending hours installing software, all our exercises are hosted in the cloud:
-
-* **Web Dashboards (Streamlit/HTML):** Click the "Run Dashboard" links in the table above. These run instantly on any device (including mobile).
-* **Python/Jupyter Notebooks:** Click the "Open in Colab" links. This will open the exercise in Google Colab, allowing you to run Python code directly in your browser using Google's servers. *(Requires a free Google account)*.
+**Task 2: Non-Linear Decision Boundaries (Fraud Rings)**  
+Interactive visualization showing why linear models fail on complex manifolds and how neural networks wrap the data.
+* 🌐 **[Play Live Animation](https://bitsomrachit.github.io/FoundationsAIBusiness/lecture-03/animation.html)**
+* 💻 **[View Animation Source Code (`animation.html`)](./lecture-03/animation.html)**
 
 ---
+
+## 🛠️ Important Note for Students
+
+* **To run the exercises:** Please click the **Live** links above. If you click the "Source Code" links, GitHub will only show you the raw text/code of the files, not the actual running application.
+* **To build this yourself:** You can use the `app.py` and `requirements.txt` files to host your own dashboard on Streamlit Community Cloud.
 
 ## 📥 Downloading Materials for Offline Use
 
-If you want to download the PDF slides, raw datasets, or offline code files to your local laptop:
-
+If you want to download the raw code files to your local laptop:
 1. Click the green **`<> Code`** button at the top right of this repository page.
 2. Select **`Download ZIP`**.
-3. Extract the downloaded `.zip` folder on your computer.
-4. Inside, you will see folders categorized by `lecture-01`, `lecture-02`, etc.
-
----
-*For any technical issues during the workshop, please raise your hand or refresh your browser window.*
+3. Extract the downloaded `.zip` folder on your computer to view the `lecture-03` files.
