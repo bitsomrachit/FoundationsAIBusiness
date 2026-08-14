@@ -1,4 +1,4 @@
-# 🚀 Foundations of AI for Business Applications
+# Foundations of AI for Business Applications
 *Repository for Course Material, Interactive Dashboards, and Hands-On Exercises*
 
 Welcome to the central hub for our AI in Business course! Here you will find all code files and links to our live interactive exercises.
@@ -7,7 +7,8 @@ Welcome to the central hub for our AI in Business course! Here you will find all
 
 ## 📅 Course Materials
 
-### Lecture 03: The ML Bottleneck & Deep Learning Scaling
+<details open>
+<summary> ### Lecture 03: The ML Bottleneck & Deep Learning Scaling </summary>
 [📁 View Lecture 03 Folder](./lecture-03/)
 
 **Task 1: Enterprise Fraud Scaling Dashboard**  
@@ -20,7 +21,7 @@ Simulate how traditional ML (Linear/XGBoost) compares to Deep Learning as datase
 Interactive visualization showing why linear models fail on complex manifolds and how neural networks wrap the data.
 * 🌐 **[Play Live Animation](https://bitsomrachit.github.io/FoundationsAIBusiness/lecture-03/animation.html)**
 * 💻 **[View Animation Source Code (`animation.html`)](./lecture-03/animation.html)**
-
+</details>
 ---
 
 ## 🛠️ Important Note for Students
