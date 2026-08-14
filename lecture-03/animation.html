@@ -1,3 +1,156 @@
-<html>
-  Hello World!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Boundary Animation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        canvas {
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        #btn-linear {
+            background-color: #d32f2f;
+            color: white;
+        }
+        #btn-nonlinear {
+            background-color: #1976d2;
+            color: white;
+        }
+        button:hover { opacity: 0.8; }
+        #status {
+            margin-top: 15px;
+            font-size: 18px;
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>The Fraud Ring Problem: Linear vs. Non-Linear Boundaries</h2>
+    <canvas id="mlCanvas" width="600" height="400"></canvas>
+    
+    <div class="controls">
+        <button id="btn-linear" onclick="animateLinear()">1. Try Traditional ML (Linear)</button>
+        <button id="btn-nonlinear" onclick="animateNonLinear()">2. Try Deep Learning (Non-Linear)</button>
+    </div>
+    
+    <div id="status">Click a button to train a model...</div>
+
+    <script>
+        const canvas = document.getElementById('mlCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusText = document.getElementById('status');
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const points = [];
+
+        // Generate Dataset: Blue (Legitimate) in center, Orange (Fraud) in outer ring
+        function generateData() {
+            for (let i = 0; i < 300; i++) {
+                // Class 0: Inner circle (Legitimate)
+                let r0 = Math.random() * 70;
+                let theta0 = Math.random() * 2 * Math.PI;
+                points.push({ x: centerX + r0 * Math.cos(theta0), y: centerY + r0 * Math.sin(theta0), color: '#4fc3f7', class: 0 });
+
+                // Class 1: Outer ring (Fraud)
+                let r1 = 120 + Math.random() * 50;
+                let theta1 = Math.random() * 2 * Math.PI;
+                points.push({ x: centerX + r1 * Math.cos(theta1), y: centerY + r1 * Math.sin(theta1), color: '#ffb74d', class: 1 });
+            }
+        }
+
+        function drawPoints() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+        }
+
+        generateData();
+        drawPoints();
+
+        // Animation for Linear Model (Fails to separate)
+        let animationId;
+        function animateLinear() {
+            cancelAnimationFrame(animationId);
+            let yOffset = -200;
+            statusText.innerText = "Training Linear SVM... Attempting to find a separating line.";
+            statusText.style.color = "#ff8a80";
+
+            function drawFrame() {
+                drawPoints();
+                ctx.beginPath();
+                ctx.moveTo(0, centerY + yOffset - 100);
+                ctx.lineTo(canvas.width, centerY + yOffset + 100);
+                ctx.strokeStyle = '#ff5252';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                yOffset += 4;
+                if (yOffset < 50) {
+                    animationId = requestAnimationFrame(drawFrame);
+                } else {
+                    statusText.innerText = "Linear Model Failed: Accuracy stuck at 50%. Cannot separate concentric data.";
+                }
+            }
+            drawFrame();
+        }
+
+        // Animation for Deep Learning Model (Successfully wraps data)
+        function animateNonLinear() {
+            cancelAnimationFrame(animationId);
+            let radius = 10;
+            statusText.innerText = "Training Deep Neural Network... Learning non-linear manifolds.";
+            statusText.style.color = "#81d4fa";
+
+            function drawFrame() {
+                drawPoints();
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#448aff';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                radius += 2;
+                if (radius < 100) {
+                    animationId = requestAnimationFrame(drawFrame);
+                } else {
+                    statusText.innerText = "Deep Learning Success: 100% Accuracy. Data perfectly segmented.";
+                }
+            }
+            drawFrame();
+        }
+    </script>
+</body>
 </html>
