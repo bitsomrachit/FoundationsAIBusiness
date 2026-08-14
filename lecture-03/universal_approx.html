@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Approximation Theorem</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a; /* Deep slate blue */
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h2 { margin: 0 0 5px 0; color: #38bdf8; font-size: 28px; }
+        p.subtitle { margin: 0; color: #94a3b8; font-size: 15px; }
+        
+        .dashboard {
+            background-color: #1e293b;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .canvas-container {
+            position: relative;
+            background-color: #0f172a;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            overflow: hidden;
+        }
+
+        canvas { display: block; }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            background-color: #0f172a;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #475569;
+            border-radius: 2px;
+        }
+
+        .metrics {
+            display: flex;
+            gap: 20px;
+        }
+
+        .metric-box {
+            background-color: #1e293b;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            text-align: center;
+            min-width: 100px;
+        }
+        .metric-value { font-size: 20px; font-weight: bold; color: #38bdf8; }
+        .metric-label { font-size: 11px; text-transform: uppercase; color: #94a3b8; margin-top: 4px; letter-spacing: 1px; }
+
+        .btn-animate {
+            background-color: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-animate:hover { background-color: #7dd3fc; transform: scale(1.05); }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-top: -5px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot-target { background-color: #f43f5e; box-shadow: 0 0 8px #f43f5e; }
+        .dot-approx { background-color: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>Universal Approximation Theorem</h2>
+        <p class="subtitle">A single hidden layer can approximate any continuous function</p>
+    </div>
+
+    <div class="dashboard">
+        <div class="canvas-container">
+            <canvas id="mathCanvas" width="800" height="400"></canvas>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="dot dot-target"></div> Arbitrary Target Function $f(x)$</div>
+            <div class="legend-item"><div class="dot dot-approx"></div> Neural Network Approximation $\hat{f}(x)$</div>
+        </div>
+
+        <div class="controls">
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Network Width (Neuron Pairs)</span>
+                    <span id="neuronCount">3</span>
+                </div>
+                <input type="range" id="neuronSlider" min="1" max="100" value="3">
+            </div>
+            
+            <button class="btn-animate" id="btnAnimate" onclick="playAnimation()">▶ Auto-Train</button>
+
+            <div class="metrics">
+                <div class="metric-box">
+                    <div class="metric-value" id="mseValue">0.000</div>
+                    <div class="metric-label">MSE Loss</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mathCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('neuronSlider');
+        const countDisplay = document.getElementById('neuronCount');
+        const mseDisplay = document.getElementById('mseValue');
+        
+        let width = canvas.width;
+        let height = canvas.height;
+        let padding = 40;
+        let drawWidth = width - padding * 2;
+        let drawHeight = height - padding * 2;
+        
+        let isAnimating = false;
+        let animationInterval;
+
+        // The Arbitrary Target Function (normalized to 0-1 range roughly)
+        function targetFunction(x) {
+            // A complex curve: combination of sine waves and a polynomial
+            return 0.5 
+                 + 0.25 * Math.sin(x * Math.PI * 3.5) 
+                 + 0.15 * Math.cos(x * Math.PI * 8) 
+                 - 0.1 * Math.pow(x - 0.5, 2);
+        }
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            
+            // Grid lines
+            for(let i=0; i<=10; i++) {
+                let x = padding + (i/10) * drawWidth;
+                let y = padding + (i/10) * drawHeight;
+                
+                ctx.beginPath(); ctx.moveTo(x, padding); ctx.lineTo(x, height-padding); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(width-padding, y); ctx.stroke();
+            }
+
+            // Axes
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding); // X
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding); // Y
+            ctx.stroke();
+        }
+
+        function drawTargetCurve() {
+            ctx.beginPath();
+            ctx.strokeStyle = '#f43f5e'; // Rose color
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = 'rgba(244, 63, 94, 0.5)';
+
+            for (let px = 0; px <= drawWidth; px++) {
+                let normalizedX = px / drawWidth;
+                let normalizedY = targetFunction(normalizedX);
+                let py = height - padding - (normalizedY * drawHeight);
+                
+                if (px === 0) ctx.moveTo(padding + px, py);
+                else ctx.lineTo(padding + px, py);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0; // reset
+        }
+
+        function drawApproximation(numNeurons) {
+            let towerWidth = drawWidth / numNeurons;
+            let totalError = 0;
+            let sampleCount = 0;
+
+            // Draw the "towers" (Riemann sum style)
+            for (let i = 0; i < numNeurons; i++) {
+                let startX = i * towerWidth;
+                let endX = (i + 1) * towerWidth;
+                let midX = (startX + endX) / 2;
+                
+                let normalizedMidX = midX / drawWidth;
+                let towerHeightNorm = targetFunction(normalizedMidX);
+                let towerHeightPx = towerHeightNorm * drawHeight;
+                
+                let pxStartX = padding + startX;
+                let pyTop = height - padding - towerHeightPx;
+
+                // Draw filled bump
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.15)'; // Translucent blue
+                ctx.fillRect(pxStartX, pyTop, towerWidth, towerHeightPx);
+                
+                // Draw tower outline
+                ctx.strokeStyle = '#0ea5e9';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(pxStartX, pyTop, towerWidth, towerHeightPx);
+
+                // Draw top "step" line
+                ctx.beginPath();
+                ctx.moveTo(pxStartX, pyTop);
+                ctx.lineTo(pxStartX + towerWidth, pyTop);
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#38bdf8';
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            // Calculate Mean Squared Error (MSE)
+            for (let px = 0; px <= drawWidth; px++) {
+                let normalizedX = px / drawWidth;
+                let actualY = targetFunction(normalizedX);
+                
+                let activeTowerIndex = Math.floor(px / towerWidth);
+                if (activeTowerIndex >= numNeurons) activeTowerIndex = numNeurons - 1;
+                
+                let towerMidX = ((activeTowerIndex + 0.5) * towerWidth) / drawWidth;
+                let predictedY = targetFunction(towerMidX);
+                
+                totalError += Math.pow(actualY - predictedY, 2);
+                sampleCount++;
+            }
+            
+            let mse = totalError / sampleCount;
+            mseDisplay.innerText = mse.toFixed(4);
+        }
+
+        function updateVisualization() {
+            let neurons = parseInt(slider.value);
+            countDisplay.innerText = neurons;
+            drawGrid();
+            drawApproximation(neurons);
+            drawTargetCurve(); // Draw target on top
+        }
+
+        function playAnimation() {
+            if (isAnimating) {
+                clearInterval(animationInterval);
+                document.getElementById('btnAnimate').innerText = "▶ Auto-Train";
+                isAnimating = false;
+                return;
+            }
+            
+            isAnimating = true;
+            document.getElementById('btnAnimate').innerText = "⏸ Pause";
+            slider.value = 1;
+            
+            animationInterval = setInterval(() => {
+                let currentVal = parseInt(slider.value);
+                if (currentVal >= 100) {
+                    clearInterval(animationInterval);
+                    document.getElementById('btnAnimate').innerText = "▶ Auto-Train";
+                    isAnimating = false;
+                } else {
+                    // Start slow, accelerate as it goes
+                    let increment = currentVal < 20 ? 1 : (currentVal < 50 ? 2 : 5);
+                    slider.value = Math.min(100, currentVal + increment);
+                    updateVisualization();
+                }
+            }, 150);
+        }
+
+        // Event Listeners
+        slider.addEventListener('input', updateVisualization);
+
+        // Initial Draw
+        updateVisualization();
+
+    </script>
+</body>
+</html>
