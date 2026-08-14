@@ -3,50 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Approximation - Deep Learning</title>
+    <title>Universal Approximation - Weights, Biases & Functions</title>
     <style>
         :root {
-            --bg-color: #0f0202;
-            --panel-bg: #1c0505;
-            --border-color: #3a0a0a;
-            --text-main: #f8e5e5;
-            --text-muted: #d49a9a;
+            --bg-color: #0d0202;
+            --panel-bg: #1a0505;
+            --border-color: #3d0c0c;
+            --text-main: #fcebeb;
+            --text-muted: #d69898;
             --red-bright: #ff3333;
-            --red-dark: #cc0000;
-            --red-glow: rgba(255, 51, 51, 0.5);
+            --red-dark: #b30000;
+            --red-glow: rgba(255, 51, 51, 0.4);
+            --cyan-bright: #00e5ff;
+            --orange-bright: #ff9900;
             --white: #ffffff;
         }
 
+        * { box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
+            padding: 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
-        h2 { margin: 0 0 5px 0; color: var(--red-bright); font-size: 26px; text-transform: uppercase; letter-spacing: 1px;}
-        p.subtitle { margin: 0; color: var(--text-muted); font-size: 15px; }
+        h2 { 
+            margin: 0 0 5px 0; 
+            color: var(--red-bright); 
+            font-size: 24px; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px;
+        }
+        p.subtitle { margin: 0; color: var(--text-muted); font-size: 14px; }
 
         .dashboard {
             background-color: var(--panel-bg);
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.85);
             border: 1px solid var(--border-color);
-            width: 800px;
+            width: 100%;
+            max-width: 860px;
         }
 
-        /* Tabs */
+        /* Navigation Tabs */
         .tabs {
             display: flex;
             gap: 10px;
@@ -54,72 +65,93 @@
         }
         .tab-btn {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             background-color: var(--bg-color);
             color: var(--text-muted);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.2s ease;
         }
         .tab-btn.active {
             background-color: var(--red-dark);
             color: var(--white);
             border-color: var(--red-bright);
-            box-shadow: 0 0 15px rgba(204, 0, 0, 0.4);
+            box-shadow: 0 0 12px var(--red-glow);
         }
 
         .canvas-container {
             position: relative;
-            background-color: var(--bg-color);
+            background-color: #050101;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             margin-bottom: 15px;
         }
-        canvas { display: block; }
+        canvas { display: block; width: 100%; height: auto; }
 
-        .controls {
+        /* Formula HUD */
+        .hud-panel {
+            background: rgba(10, 2, 2, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
             display: flex;
-            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .hud-item { display: flex; align-items: center; gap: 6px; }
+        .hud-val { color: var(--red-bright); font-weight: bold; }
+
+        /* Controls Grid */
+        .controls {
             background-color: var(--bg-color);
             padding: 15px 20px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
-            min-height: 100px;
         }
 
-        .control-group {
-            flex: 1;
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 25px;
+        }
+
+        .slider-group {
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            gap: 4px;
         }
-
-        .slider-row {
+        .slider-header {
             display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 8px;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
         }
-        .slider-row:last-child { margin-bottom: 0; }
-        .slider-label { width: 170px; font-size: 12px; color: var(--text-muted); font-weight: bold;}
-        
+        .slider-header span.val { color: var(--white); font-family: monospace; }
+
         input[type=range] {
-            flex: 1;
             -webkit-appearance: none;
+            width: 100%;
             background: transparent;
         }
+        input[type=range]:focus { outline: none; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
+            height: 14px;
+            width: 14px;
             border-radius: 50%;
             background: var(--red-bright);
             cursor: pointer;
-            margin-top: -6px;
-            box-shadow: 0 0 8px var(--red-glow);
+            margin-top: -5px;
+            box-shadow: 0 0 6px var(--red-glow);
         }
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
@@ -128,18 +160,6 @@
             background: var(--border-color);
             border-radius: 2px;
         }
-
-        .legend {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-top: 10px;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-        .legend-item { display: flex; align-items: center; gap: 6px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
 
         .btn-action {
             background-color: var(--red-dark);
@@ -150,24 +170,21 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
-            height: 40px;
-            align-self: center;
         }
         .btn-action:hover {
             background-color: var(--red-bright);
-            box-shadow: 0 0 15px var(--red-glow);
+            box-shadow: 0 0 12px var(--red-glow);
         }
-        
-        .math-display {
-            font-family: monospace;
-            background: #000;
-            padding: 5px 10px;
-            border-radius: 4px;
-            color: #ff8888;
+
+        .legend {
+            display: flex;
+            gap: 15px;
             font-size: 12px;
-            margin-left: 10px;
-            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            justify-content: center;
+            margin-top: 10px;
         }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 
         #mode2-controls { display: none; }
     </style>
@@ -176,64 +193,119 @@
 
     <div class="header">
         <h2>Universal Approximation Theorem</h2>
-        <p class="subtitle">How Neural Networks construct functions piece by piece</p>
+        <p class="subtitle">Single Input $x \rightarrow$ Network Weights & Biases $\rightarrow$ Single Output $y$</p>
     </div>
 
     <div class="dashboard">
         
+        <!-- Navigation -->
         <div class="tabs">
-            <button class="tab-btn active" id="tab1" onclick="switchMode(1)">1. The Building Block (2 Neurons)</button>
-            <button class="tab-btn" id="tab2" onclick="switchMode(2)">2. Full Network Approximation</button>
+            <button class="tab-btn active" id="tab1" onclick="switchMode(1)">1. Single Tower ($x \rightarrow y$ mapping via $w_1, w_2, b_1, b_2$)</button>
+            <button class="tab-btn" id="tab2" onclick="switchMode(2)">2. Fitting $(x, y)$ Samples into Any Function</button>
         </div>
 
+        <!-- Canvas -->
         <div class="canvas-container">
-            <canvas id="mathCanvas" width="760" height="300"></canvas>
+            <canvas id="mathCanvas" width="820" height="320"></canvas>
         </div>
 
-        <!-- MODE 1 CONTROLS: Building a Tower -->
+        <!-- Dynamic Math Formula HUD -->
+        <div class="hud-panel" id="hudPanel">
+            <!-- Populated via JavaScript -->
+        </div>
+
+        <!-- CONTROLS MODE 1: 2 Hidden Neurons -->
         <div class="controls" id="mode1-controls">
-            <div class="control-group">
-                <div class="slider-row">
-                    <div class="slider-label">Input Weight <br><span style="font-weight:normal; font-size:10px;">(Makes Sigmoid steeper)</span></div>
-                    <input type="range" id="wSlider" min="5" max="300" value="20">
+            <div class="control-grid">
+                <!-- Neuron 1 Controls -->
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span style="color:var(--orange-bright)">Neuron 1 Weight ($w_1$)</span>
+                        <span class="val" id="w1Val">60</span>
+                    </div>
+                    <input type="range" id="w1Slider" min="-100" max="100" value="60">
                 </div>
-                <div class="slider-row">
-                    <div class="slider-label">Bias 1 <br><span style="font-weight:normal; font-size:10px;">(Neuron 1 Threshold)</span></div>
-                    <input type="range" id="s1Slider" min="0" max="100" value="35">
+                
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span style="color:var(--orange-bright)">Neuron 1 Bias ($b_1$)</span>
+                        <span class="val" id="b1Val">-18</span>
+                    </div>
+                    <input type="range" id="b1Slider" min="-100" max="100" value="-18">
                 </div>
-                <div class="slider-row">
-                    <div class="slider-label">Bias 2 <br><span style="font-weight:normal; font-size:10px;">(Neuron 2 Threshold)</span></div>
-                    <input type="range" id="s2Slider" min="0" max="100" value="65">
+
+                <!-- Neuron 2 Controls -->
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span style="color:var(--cyan-bright)">Neuron 2 Weight ($w_2$)</span>
+                        <span class="val" id="w2Val">60</span>
+                    </div>
+                    <input type="range" id="w2Slider" min="-100" max="100" value="60">
                 </div>
-                <div class="slider-row">
-                    <div class="slider-label">Output Weight <br><span style="font-weight:normal; font-size:10px;">(Scales Tower Height)</span></div>
-                    <input type="range" id="hSlider" min="-100" max="100" value="70">
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span style="color:var(--cyan-bright)">Neuron 2 Bias ($b_2$)</span>
+                        <span class="val" id="b2Val">-42</span>
+                    </div>
+                    <input type="range" id="b2Slider" min="-100" max="100" value="-42">
+                </div>
+
+                <!-- Output Layer Weights -->
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Output Weight 1 ($w_{out1}$)</span>
+                        <span class="val" id="wo1Val">1.0</span>
+                    </div>
+                    <input type="range" id="wo1Slider" min="-2" max="2" step="0.1" value="1.0">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Output Weight 2 ($w_{out2}$)</span>
+                        <span class="val" id="wo2Val">-1.0</span>
+                    </div>
+                    <input type="range" id="wo2Slider" min="-2" max="2" step="0.1" value="-1.0">
                 </div>
             </div>
-            <div style="display: flex; flex-direction: column; justify-content: center; max-width: 250px;">
-                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
-                    <span style="color:rgba(255,100,100,0.8)">Neuron 1 (Steps Up)</span><br>
-                    <span style="color:rgba(200,50,50,0.8)">Neuron 2 (Steps Down)</span>
+
+            <!-- Probe Input X -->
+            <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span style="color:var(--white);">Test Input ($x$) Probe</span>
+                        <span class="val" id="xProbeVal">0.50</span>
+                    </div>
+                    <input type="range" id="xProbeSlider" min="0" max="1" step="0.01" value="0.50">
                 </div>
-                <div class="math-display" id="equationDisplay">
-                    y = w_out * (σ(N1) - σ(N2))
-                </div>
+            </div>
+
+            <div class="legend">
+                <div><span class="legend-dot" style="background:var(--orange-bright)"></span> Neuron 1: $a_1 = \sigma(w_1 x + b_1)$</div>
+                <div><span class="legend-dot" style="background:var(--cyan-bright)"></span> Neuron 2: $a_2 = \sigma(w_2 x + b_2)$</div>
+                <div><span class="legend-dot" style="background:var(--red-bright)"></span> Output: $y = w_{out1}a_1 + w_{out2}a_2$</div>
             </div>
         </div>
 
-        <!-- MODE 2 CONTROLS: Universal Approximation -->
+        <!-- CONTROLS MODE 2: Function Approximation via Samples -->
         <div class="controls" id="mode2-controls">
-            <div class="control-group">
-                <div class="slider-row">
-                    <div class="slider-label" style="width: 250px;">Number of Neuron Pairs (Towers): <span id="pairCount" style="color:var(--red-bright);">3</span></div>
-                    <input type="range" id="nSlider" min="1" max="100" value="3">
+            <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between;">
+                <div style="flex: 1;">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>Number of Hidden Neuron Pairs ($N$):</span>
+                            <span class="val" id="pairCount">2</span>
+                        </div>
+                        <input type="range" id="nSlider" min="1" max="50" value="2">
+                    </div>
                 </div>
-                <div class="legend" id="mode2-legend">
-                    <div class="legend-item"><div class="dot" style="background:#fff; box-shadow: 0 0 5px #fff;"></div> Target Function</div>
-                    <div class="legend-item"><div class="dot" style="background:var(--red-bright); box-shadow: 0 0 8px var(--red-bright);"></div> Neural Network Sum</div>
-                </div>
+                <button class="btn-action" id="btnTrain" onclick="toggleAutoTrain()">▶ Fit All $(x, y)$ Samples</button>
             </div>
-            <button class="btn-action" id="btnTrain" onclick="toggleAutoTrain()">▶ Auto-Train</button>
+
+            <div class="legend" style="margin-top: 15px;">
+                <div><span class="legend-dot" style="background:#ffffff"></span> Sample Data Points $(x_i, y_i)$</div>
+                <div><span class="legend-dot" style="background:var(--red-bright)"></span> Neural Network Fit $y(x)$</div>
+            </div>
         </div>
 
     </div>
@@ -242,154 +314,210 @@
         const canvas = document.getElementById('mathCanvas');
         const ctx = canvas.getContext('2d');
         
-        // UI Elements
-        const wSlider = document.getElementById('wSlider'); // Input weight (steepness)
-        const s1Slider = document.getElementById('s1Slider'); // Bias 1 (Shift 1)
-        const s2Slider = document.getElementById('s2Slider'); // Bias 2 (Shift 2)
-        const hSlider = document.getElementById('hSlider');   // Output weight (Height)
-        const nSlider = document.getElementById('nSlider');   // Number of pairs
-        
-        const pairCount = document.getElementById('pairCount');
-        const btnTrain = document.getElementById('btnTrain');
-        const eqDisplay = document.getElementById('equationDisplay');
+        // Mode 1 Sliders
+        const w1Slider = document.getElementById('w1Slider');
+        const b1Slider = document.getElementById('b1Slider');
+        const w2Slider = document.getElementById('w2Slider');
+        const b2Slider = document.getElementById('b2Slider');
+        const wo1Slider = document.getElementById('wo1Slider');
+        const wo2Slider = document.getElementById('wo2Slider');
+        const xProbeSlider = document.getElementById('xProbeSlider');
 
-        // Dimensions
-        let width = canvas.width;
-        let height = canvas.height;
-        let padX = 40;
-        let padY = 30;
-        let drawW = width - padX * 2;
+        // Mode 2 Sliders
+        const nSlider = document.getElementById('nSlider');
+        const btnTrain = document.getElementById('btnTrain');
+        const pairCount = document.getElementById('pairCount');
+        const hudPanel = document.getElementById('hudPanel');
+
+        // Canvas dimensions
+        const width = canvas.width;
+        const height = canvas.height;
+        const padX = 50;
+        const padY = 40;
+        const drawW = width - padX * 2;
         let drawH = height - padY * 2;
 
         let currentMode = 1;
         let isTraining = false;
         let trainInterval;
 
-        // Core Activation Function (Sigmoid)
-        // steepness = input weight (w), shift = bias threshold
-        function sigmoid(x, shift, steepness) {
-            return 1 / (1 + Math.exp(-steepness * (x - shift)));
+        // Sigmoid Activation Function: \sigma(z) = 1 / (1 + e^{-z})
+        function sigmoid(z) {
+            return 1 / (1 + Math.exp(-Math.max(-50, Math.min(50, z))));
         }
 
-        // Arbitrary Target Function (normalized 0 to 1)
+        // Target Continuous Function for Tab 2
         function targetFunction(x) {
-            return 0.5 + 0.3 * Math.sin(x * Math.PI * 3) - 0.2 * Math.cos(x * Math.PI * 7.5);
+            return 0.5 + 0.35 * Math.sin(x * Math.PI * 3) - 0.15 * Math.cos(x * Math.PI * 7);
         }
 
-        function drawGrid() {
+        function drawGrid(yMin = -0.5, yMax = 1.5) {
             ctx.clearRect(0, 0, width, height);
             
             // Grid lines
-            ctx.strokeStyle = '#2a0505';
+            ctx.strokeStyle = '#260808';
             ctx.lineWidth = 1;
-            for(let i=0; i<=10; i++) {
-                let x = padX + (i/10) * drawW;
-                let y = padY + (i/10) * drawH;
-                ctx.beginPath(); ctx.moveTo(x, padY); ctx.lineTo(x, height-padY); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(width-padX, y); ctx.stroke();
+            for(let i = 0; i <= 10; i++) {
+                let x = padX + (i / 10) * drawW;
+                ctx.beginPath(); ctx.moveTo(x, padY); ctx.lineTo(x, height - padY); ctx.stroke();
             }
 
-            // Zero Axis (Middle)
-            ctx.strokeStyle = '#4a1515';
-            ctx.lineWidth = 2;
-            let zeroY = height - padY - (drawH / 2);
-            ctx.beginPath(); ctx.moveTo(padX, zeroY); ctx.lineTo(width-padX, zeroY); ctx.stroke();
+            // Horizontal zero line
+            let zeroY = height - padY - ((0 - yMin) / (yMax - yMin)) * drawH;
+            ctx.strokeStyle = '#521515';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(padX, zeroY); ctx.lineTo(width - padX, zeroY); ctx.stroke();
+
+            // Axis labels
+            ctx.fillStyle = '#a86b6b';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('x = 0.0', padX - 10, height - padY + 20);
+            ctx.fillText('x = 1.0', width - padX - 15, height - padY + 20);
+            ctx.fillText(`y = ${yMax}`, 10, padY + 5);
+            ctx.fillText(`y = ${yMin}`, 10, height - padY);
         }
 
-        function drawLine(fn, color, lineWidth, dash = [], shadow = false) {
+        function drawCurve(fn, color, lineWidth, dash = [], yMin = -0.5, yMax = 1.5) {
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.lineWidth = lineWidth;
             ctx.setLineDash(dash);
-            if(shadow) {
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = color;
-            } else {
-                ctx.shadowBlur = 0;
-            }
 
             for (let px = 0; px <= drawW; px += 2) {
-                let xNorm = px / drawW;
-                let yNorm = fn(xNorm); 
-                
-                // Map to canvas Y (middle is 0 for Mode 1, bottom is 0 for Mode 2)
-                let py;
-                if (currentMode === 1) {
-                    py = height - padY - ((yNorm + 1) / 2) * drawH; 
-                } else {
-                    py = height - padY - yNorm * drawH;
-                }
+                let x = px / drawW;
+                let y = fn(x);
+                let py = height - padY - ((y - yMin) / (yMax - yMin)) * drawH;
 
                 if (px === 0) ctx.moveTo(padX + px, py);
                 else ctx.lineTo(padX + px, py);
             }
             ctx.stroke();
-            ctx.setLineDash([]); // reset
-            ctx.shadowBlur = 0; // reset
+            ctx.setLineDash([]);
         }
 
         function renderMode1() {
-            let w_in = parseInt(wSlider.value); // Input weight controls sigmoid steepness
-            let s1 = parseInt(s1Slider.value) / 100; // Bias 1
-            let s2 = parseInt(s2Slider.value) / 100; // Bias 2
-            let h = parseInt(hSlider.value) / 100;   // Output weight
+            let w1 = parseFloat(w1Slider.value);
+            let b1 = parseFloat(b1Slider.value);
+            let w2 = parseFloat(w2Slider.value);
+            let b2 = parseFloat(b2Slider.value);
+            let wo1 = parseFloat(wo1Slider.value);
+            let wo2 = parseFloat(wo2Slider.value);
+            let xProbe = parseFloat(xProbeSlider.value);
 
-            drawGrid();
+            // Update UI label text
+            document.getElementById('w1Val').innerText = w1;
+            document.getElementById('b1Val').innerText = b1;
+            document.getElementById('w2Val').innerText = w2;
+            document.getElementById('b2Val').innerText = b2;
+            document.getElementById('wo1Val').innerText = wo1.toFixed(1);
+            document.getElementById('wo2Val').innerText = wo2.toFixed(1);
+            document.getElementById('xProbeVal').innerText = xProbe.toFixed(2);
 
-            // Draw Neuron 1: +sigmoid(x - s1)
-            drawLine(x => sigmoid(x, s1, w_in), 'rgba(255, 100, 100, 0.6)', 2, [4, 4]);
-            
-            // Draw Neuron 2: -sigmoid(x - s2) (Negative because we subtract the weights)
-            drawLine(x => -sigmoid(x, s2, w_in), 'rgba(200, 50, 50, 0.6)', 2, [4, 4]);
+            let yMin = -1.0, yMax = 1.5;
+            drawGrid(yMin, yMax);
 
-            // Draw The Output Tower = Output Weight * (Neuron 1 - Neuron 2)
-            drawLine(x => h * (sigmoid(x, s1, w_in) - sigmoid(x, s2, w_in)), '#ff3333', 4, [], true);
+            // Hidden Activations
+            let n1Fn = x => sigmoid(w1 * x + b1);
+            let n2Fn = x => sigmoid(w2 * x + b2);
+            let outFn = x => wo1 * n1Fn(x) + wo2 * n2Fn(x);
 
-            // Update Equation Display
-            eqDisplay.innerText = `Height: ${h.toFixed(2)}\nN1 Bias: ${s1.toFixed(2)}\nN2 Bias: ${s2.toFixed(2)}`;
+            // Draw individual neuron activations
+            drawCurve(n1Fn, '#ff9900', 2, [4, 4], yMin, yMax);
+            drawCurve(n2Fn, '#00e5ff', 2, [4, 4], yMin, yMax);
+
+            // Draw combined network output y(x)
+            drawCurve(outFn, '#ff3333', 4, [], yMin, yMax);
+
+            // Evaluate specific x probe
+            let a1_probe = n1Fn(xProbe);
+            let a2_probe = n2Fn(xProbe);
+            let y_probe = outFn(xProbe);
+
+            // Draw Crosshair for Probe X
+            let pxProbe = padX + xProbe * drawW;
+            let pyProbe = height - padY - ((y_probe - yMin) / (yMax - yMin)) * drawH;
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath(); ctx.moveTo(pxProbe, padY); ctx.lineTo(pxProbe, height - padY); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Dot at output y
+            ctx.fillStyle = '#ff3333';
+            ctx.beginPath(); ctx.arc(pxProbe, pyProbe, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
+
+            // Update HUD
+            hudPanel.innerHTML = `
+                <div class="hud-item">Input: <span class="hud-val">x = ${xProbe.toFixed(2)}</span></div>
+                <div class="hud-item">a₁ = σ(${w1}x + ${b1}) = <span class="hud-val" style="color:var(--orange-bright)">${a1_probe.toFixed(2)}</span></div>
+                <div class="hud-item">a₂ = σ(${w2}x + ${b2}) = <span class="hud-val" style="color:var(--cyan-bright)">${a2_probe.toFixed(2)}</span></div>
+                <div class="hud-item">Output: <span class="hud-val" style="color:var(--red-bright)">y = (${wo1.toFixed(1)})(a₁) + (${wo2.toFixed(1)})(a₂) = ${y_probe.toFixed(2)}</span></div>
+            `;
         }
 
         function renderMode2() {
             let N = parseInt(nSlider.value);
             pairCount.innerText = N;
-            
-            drawGrid();
 
-            // Draw Target Function (White)
-            drawLine(x => targetFunction(x), '#ffffff', 2, [], true);
+            let yMin = -0.2, yMax = 1.2;
+            drawGrid(yMin, yMax);
 
-            // Define the Neural Network sum function
+            // Sample data points along target function
+            let sampleCount = 20;
+            let samples = [];
+            for (let i = 0; i <= sampleCount; i++) {
+                let sx = i / sampleCount;
+                let sy = targetFunction(sx);
+                samples.push({ x: sx, y: sy });
+            }
+
+            // Draw Sample Points (White Circles)
+            samples.forEach(pt => {
+                let px = padX + pt.x * drawW;
+                let py = height - padY - ((pt.y - yMin) / (yMax - yMin)) * drawH;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+            });
+
+            // Reconstruct network function with N pairs
+            let w_steep = 200; // Steepness for clean step conversion
             let nnFunction = function(x) {
                 let sum = 0;
-                let w_in = 300; // In a full network, weights are trained to be very steep to form towers
-                
-                for(let i = 0; i < N; i++) {
+                for (let i = 0; i < N; i++) {
                     let s1 = i / N;
                     let s2 = (i + 1) / N;
                     let mid = (s1 + s2) / 2;
-                    let h = targetFunction(mid); // Output weight trained to reach target height
-                    
-                    // Add this tower to the total network output
-                    sum += h * (sigmoid(x, s1, w_in) - sigmoid(x, s2, w_in));
+                    let targetY = targetFunction(mid);
+
+                    // Neuron 1 & 2 activations forming tower i
+                    let a1 = sigmoid(w_steep * (x - s1));
+                    let a2 = sigmoid(w_steep * (x - s2));
+
+                    // Add scaled bump to total y output
+                    sum += targetY * (a1 - a2);
                 }
                 return sum;
             };
 
-            // Draw the Neural Network Approximation (Red)
-            drawLine(nnFunction, '#ff3333', 4, [], true);
+            // Draw Fitted NN Output Curve (Red)
+            drawCurve(nnFunction, '#ff3333', 3.5, [], yMin, yMax);
 
-            // Fill under the curve
-            ctx.beginPath();
-            for (let px = 0; px <= drawW; px += 5) {
-                let xNorm = px / drawW;
-                let py = height - padY - nnFunction(xNorm) * drawH;
-                if (px === 0) ctx.moveTo(padX + px, py);
-                else ctx.lineTo(padX + px, py);
-            }
-            ctx.lineTo(padX + drawW, height - padY);
-            ctx.lineTo(padX, height - padY);
-            ctx.fillStyle = 'rgba(255, 51, 51, 0.15)';
-            ctx.fill();
+            // Calculate Mean Squared Error (MSE) across samples
+            let mse = 0;
+            samples.forEach(pt => {
+                let pred = nnFunction(pt.x);
+                mse += Math.pow(pred - pt.y, 2);
+            });
+            mse /= samples.length;
+
+            // Update HUD
+            hudPanel.innerHTML = `
+                <div class="hud-item">Sample Points: <span class="hud-val">${samples.length}</span></div>
+                <div class="hud-item">Hidden Neuron Pairs: <span class="hud-val">${N}</span></div>
+                <div class="hud-item">Total Trainable Weights & Biases: <span class="hud-val">${N * 6}</span></div>
+                <div class="hud-item">Fitting Error (MSE): <span class="hud-val" style="color:${mse < 0.01 ? '#00ff88' : 'var(--red-bright)'}">${mse.toFixed(5)}</span></div>
+            `;
         }
 
         function updateViz() {
@@ -399,48 +527,44 @@
 
         function switchMode(mode) {
             currentMode = mode;
-            
             document.getElementById('tab1').classList.toggle('active', mode === 1);
             document.getElementById('tab2').classList.toggle('active', mode === 2);
-            
-            document.getElementById('mode1-controls').style.display = mode === 1 ? 'flex' : 'none';
-            document.getElementById('mode2-controls').style.display = mode === 2 ? 'flex' : 'none';
+            document.getElementById('mode1-controls').style.display = mode === 1 ? 'block' : 'none';
+            document.getElementById('mode2-controls').style.display = mode === 2 ? 'block' : 'none';
 
-            if(isTraining) toggleAutoTrain();
+            if (isTraining) toggleAutoTrain();
             updateViz();
         }
 
         function toggleAutoTrain() {
             if (isTraining) {
                 clearInterval(trainInterval);
-                btnTrain.innerText = "▶ Auto-Train";
+                btnTrain.innerText = "▶ Fit All (x, y) Samples";
                 isTraining = false;
             } else {
                 isTraining = true;
-                btnTrain.innerText = "⏸ Pause";
+                btnTrain.innerText = "⏸ Pause Fitting";
                 nSlider.value = 1;
-                
+
                 trainInterval = setInterval(() => {
                     let val = parseInt(nSlider.value);
-                    if (val >= 100) {
+                    if (val >= 50) {
                         toggleAutoTrain();
                     } else {
-                        let step = val < 20 ? 1 : (val < 50 ? 2 : 4);
-                        nSlider.value = Math.min(100, val + step);
+                        nSlider.value = val + 1;
                         updateViz();
                     }
-                }, 150);
+                }, 120);
             }
         }
 
         // Event Listeners
-        wSlider.addEventListener('input', updateViz);
-        s1Slider.addEventListener('input', updateViz);
-        s2Slider.addEventListener('input', updateViz);
-        hSlider.addEventListener('input', updateViz);
+        [w1Slider, b1Slider, w2Slider, b2Slider, wo1Slider, wo2Slider, xProbeSlider].forEach(slider => {
+            slider.addEventListener('input', updateViz);
+        });
         nSlider.addEventListener('input', updateViz);
 
-        // Init
+        // Initial Render
         updateViz();
     </script>
 </body>
