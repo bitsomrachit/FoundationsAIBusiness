@@ -32,7 +32,7 @@
 
         .header {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         h2 { margin: 0 0 5px 0; color: var(--red-bright); font-size: 26px; text-transform: uppercase; letter-spacing: 1px;}
         p.subtitle { margin: 0; color: var(--text-muted); font-size: 15px; }
@@ -54,13 +54,13 @@
         }
         .tab-btn {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             background-color: var(--bg-color);
             color: var(--text-muted);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             transition: all 0.2s;
         }
@@ -87,7 +87,7 @@
             padding: 15px 20px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
-            min-height: 80px;
+            min-height: 100px;
         }
 
         .control-group {
@@ -101,10 +101,10 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .slider-row:last-child { margin-bottom: 0; }
-        .slider-label { width: 140px; font-size: 13px; color: var(--text-muted); font-weight: bold;}
+        .slider-label { width: 170px; font-size: 12px; color: var(--text-muted); font-weight: bold;}
         
         input[type=range] {
             flex: 1;
@@ -157,6 +157,17 @@
             background-color: var(--red-bright);
             box-shadow: 0 0 15px var(--red-glow);
         }
+        
+        .math-display {
+            font-family: monospace;
+            background: #000;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: #ff8888;
+            font-size: 12px;
+            margin-left: 10px;
+            border: 1px solid var(--border-color);
+        }
 
         #mode2-controls { display: none; }
     </style>
@@ -176,23 +187,36 @@
         </div>
 
         <div class="canvas-container">
-            <canvas id="mathCanvas" width="760" height="350"></canvas>
+            <canvas id="mathCanvas" width="760" height="300"></canvas>
         </div>
 
         <!-- MODE 1 CONTROLS: Building a Tower -->
         <div class="controls" id="mode1-controls">
             <div class="control-group">
                 <div class="slider-row">
-                    <div class="slider-label">Neuron 1 (Step Up)</div>
-                    <input type="range" id="s1Slider" min="0" max="100" value="30">
+                    <div class="slider-label">Input Weight <br><span style="font-weight:normal; font-size:10px;">(Makes Sigmoid steeper)</span></div>
+                    <input type="range" id="wSlider" min="5" max="300" value="20">
                 </div>
                 <div class="slider-row">
-                    <div class="slider-label">Neuron 2 (Step Down)</div>
-                    <input type="range" id="s2Slider" min="0" max="100" value="50">
+                    <div class="slider-label">Bias 1 <br><span style="font-weight:normal; font-size:10px;">(Neuron 1 Threshold)</span></div>
+                    <input type="range" id="s1Slider" min="0" max="100" value="35">
                 </div>
                 <div class="slider-row">
-                    <div class="slider-label">Output Weight (Height)</div>
-                    <input type="range" id="hSlider" min="-100" max="100" value="80">
+                    <div class="slider-label">Bias 2 <br><span style="font-weight:normal; font-size:10px;">(Neuron 2 Threshold)</span></div>
+                    <input type="range" id="s2Slider" min="0" max="100" value="65">
+                </div>
+                <div class="slider-row">
+                    <div class="slider-label">Output Weight <br><span style="font-weight:normal; font-size:10px;">(Scales Tower Height)</span></div>
+                    <input type="range" id="hSlider" min="-100" max="100" value="70">
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center; max-width: 250px;">
+                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+                    <span style="color:rgba(255,100,100,0.8)">Neuron 1 (Steps Up)</span><br>
+                    <span style="color:rgba(200,50,50,0.8)">Neuron 2 (Steps Down)</span>
+                </div>
+                <div class="math-display" id="equationDisplay">
+                    y = w_out * (σ(N1) - σ(N2))
                 </div>
             </div>
         </div>
@@ -201,7 +225,7 @@
         <div class="controls" id="mode2-controls">
             <div class="control-group">
                 <div class="slider-row">
-                    <div class="slider-label" style="width: 200px;">Number of Neuron Pairs: <span id="pairCount" style="color:var(--red-bright);">3</span></div>
+                    <div class="slider-label" style="width: 250px;">Number of Neuron Pairs (Towers): <span id="pairCount" style="color:var(--red-bright);">3</span></div>
                     <input type="range" id="nSlider" min="1" max="100" value="3">
                 </div>
                 <div class="legend" id="mode2-legend">
@@ -219,28 +243,31 @@
         const ctx = canvas.getContext('2d');
         
         // UI Elements
-        const s1Slider = document.getElementById('s1Slider');
-        const s2Slider = document.getElementById('s2Slider');
-        const hSlider = document.getElementById('hSlider');
-        const nSlider = document.getElementById('nSlider');
+        const wSlider = document.getElementById('wSlider'); // Input weight (steepness)
+        const s1Slider = document.getElementById('s1Slider'); // Bias 1 (Shift 1)
+        const s2Slider = document.getElementById('s2Slider'); // Bias 2 (Shift 2)
+        const hSlider = document.getElementById('hSlider');   // Output weight (Height)
+        const nSlider = document.getElementById('nSlider');   // Number of pairs
+        
         const pairCount = document.getElementById('pairCount');
         const btnTrain = document.getElementById('btnTrain');
+        const eqDisplay = document.getElementById('equationDisplay');
 
         // Dimensions
         let width = canvas.width;
         let height = canvas.height;
         let padX = 40;
-        let padY = 40;
+        let padY = 30;
         let drawW = width - padX * 2;
         let drawH = height - padY * 2;
 
-        let currentMode = 1; // 1 = Building Block, 2 = Approximation
+        let currentMode = 1;
         let isTraining = false;
         let trainInterval;
 
-        // Sigmoid Activation Function (with very high weight to act as a step)
-        const steepness = 300;
-        function sigmoid(x, shift) {
+        // Core Activation Function (Sigmoid)
+        // steepness = input weight (w), shift = bias threshold
+        function sigmoid(x, shift, steepness) {
             return 1 / (1 + Math.exp(-steepness * (x - shift)));
         }
 
@@ -283,7 +310,7 @@
 
             for (let px = 0; px <= drawW; px += 2) {
                 let xNorm = px / drawW;
-                let yNorm = fn(xNorm); // expected -1 to 1 for mode 1, 0 to 1 for mode 2
+                let yNorm = fn(xNorm); 
                 
                 // Map to canvas Y (middle is 0 for Mode 1, bottom is 0 for Mode 2)
                 let py;
@@ -302,28 +329,24 @@
         }
 
         function renderMode1() {
-            let s1 = parseInt(s1Slider.value) / 100;
-            let s2 = parseInt(s2Slider.value) / 100;
-            let h = parseInt(hSlider.value) / 100;
-
-            // Ensure s1 is always before s2 visually to avoid confusion
-            if (s1 > s2) { let temp = s1; s1 = s2; s2 = temp; }
+            let w_in = parseInt(wSlider.value); // Input weight controls sigmoid steepness
+            let s1 = parseInt(s1Slider.value) / 100; // Bias 1
+            let s2 = parseInt(s2Slider.value) / 100; // Bias 2
+            let h = parseInt(hSlider.value) / 100;   // Output weight
 
             drawGrid();
 
             // Draw Neuron 1: +sigmoid(x - s1)
-            drawLine(x => sigmoid(x, s1), 'rgba(255, 100, 100, 0.4)', 2, [5, 5]);
+            drawLine(x => sigmoid(x, s1, w_in), 'rgba(255, 100, 100, 0.6)', 2, [4, 4]);
             
-            // Draw Neuron 2: -sigmoid(x - s2)
-            drawLine(x => -sigmoid(x, s2), 'rgba(200, 50, 50, 0.4)', 2, [5, 5]);
+            // Draw Neuron 2: -sigmoid(x - s2) (Negative because we subtract the weights)
+            drawLine(x => -sigmoid(x, s2, w_in), 'rgba(200, 50, 50, 0.6)', 2, [4, 4]);
 
-            // Draw The Tower (Neuron 1 + Neuron 2) * Height
-            drawLine(x => h * (sigmoid(x, s1) - sigmoid(x, s2)), '#ff3333', 4, [], true);
+            // Draw The Output Tower = Output Weight * (Neuron 1 - Neuron 2)
+            drawLine(x => h * (sigmoid(x, s1, w_in) - sigmoid(x, s2, w_in)), '#ff3333', 4, [], true);
 
-            // Labels
-            ctx.fillStyle = '#ff3333';
-            ctx.font = '14px Arial';
-            ctx.fillText(`Output = ${h.toFixed(2)} * (Neuron1 - Neuron2)`, padX + 20, padY + 20);
+            // Update Equation Display
+            eqDisplay.innerText = `Height: ${h.toFixed(2)}\nN1 Bias: ${s1.toFixed(2)}\nN2 Bias: ${s2.toFixed(2)}`;
         }
 
         function renderMode2() {
@@ -338,14 +361,16 @@
             // Define the Neural Network sum function
             let nnFunction = function(x) {
                 let sum = 0;
+                let w_in = 300; // In a full network, weights are trained to be very steep to form towers
+                
                 for(let i = 0; i < N; i++) {
                     let s1 = i / N;
                     let s2 = (i + 1) / N;
                     let mid = (s1 + s2) / 2;
-                    let h = targetFunction(mid); // Weight needed to reach target
+                    let h = targetFunction(mid); // Output weight trained to reach target height
                     
                     // Add this tower to the total network output
-                    sum += h * (sigmoid(x, s1) - sigmoid(x, s2));
+                    sum += h * (sigmoid(x, s1, w_in) - sigmoid(x, s2, w_in));
                 }
                 return sum;
             };
@@ -353,7 +378,7 @@
             // Draw the Neural Network Approximation (Red)
             drawLine(nnFunction, '#ff3333', 4, [], true);
 
-            // Fill under the curve slightly for effect
+            // Fill under the curve
             ctx.beginPath();
             for (let px = 0; px <= drawW; px += 5) {
                 let xNorm = px / drawW;
@@ -363,7 +388,7 @@
             }
             ctx.lineTo(padX + drawW, height - padY);
             ctx.lineTo(padX, height - padY);
-            ctx.fillStyle = 'rgba(255, 51, 51, 0.1)';
+            ctx.fillStyle = 'rgba(255, 51, 51, 0.15)';
             ctx.fill();
         }
 
@@ -375,17 +400,13 @@
         function switchMode(mode) {
             currentMode = mode;
             
-            // Toggle Buttons
             document.getElementById('tab1').classList.toggle('active', mode === 1);
             document.getElementById('tab2').classList.toggle('active', mode === 2);
             
-            // Toggle Controls
             document.getElementById('mode1-controls').style.display = mode === 1 ? 'flex' : 'none';
             document.getElementById('mode2-controls').style.display = mode === 2 ? 'flex' : 'none';
 
-            // Reset Training
             if(isTraining) toggleAutoTrain();
-
             updateViz();
         }
 
@@ -413,6 +434,7 @@
         }
 
         // Event Listeners
+        wSlider.addEventListener('input', updateViz);
         s1Slider.addEventListener('input', updateViz);
         s2Slider.addEventListener('input', updateViz);
         hSlider.addEventListener('input', updateViz);
@@ -420,7 +442,6 @@
 
         // Init
         updateViz();
-
     </script>
 </body>
 </html>
