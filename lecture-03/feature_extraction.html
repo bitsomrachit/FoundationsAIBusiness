@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hierarchical Feature Extraction Visualizer</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: #151c2e;
+            --panel-border: #232f4a;
+            --accent-red: #ff4d4d;
+            --accent-cyan: #00e5ff;
+            --accent-orange: #ff9900;
+            --accent-green: #00ff88;
+            --text-main: #f0f4f8;
+            --text-muted: #8a99ad;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 1080px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            margin: 0;
+            color: var(--accent-red);
+            font-size: 22px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 5px 0 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Controls bar */
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .select-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        select {
+            background: var(--panel-bg);
+            color: var(--text-main);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .layer-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            max-width: 450px;
+        }
+
+        input[type=range] {
+            flex: 1;
+            -webkit-appearance: none;
+            background: var(--panel-border);
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-red);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 77, 77, 0.6);
+        }
+
+        /* Grid Layout */
+        .visual-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: #0d1322;
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        canvas {
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            background: #000;
+        }
+
+        /* Feature Maps Grid */
+        .fmap-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .fmap-item {
+            background: #080c14;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .fmap-item.active {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+        }
+        .fmap-item canvas {
+            width: 100%;
+            height: auto;
+        }
+        .fmap-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Information & Classification Bar */
+        .layer-info-box {
+            grid-column: span 2;
+            background: #080c14;
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            font-size: 13px;
+        }
+
+        .prob-bar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .prob-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+        .prob-label { width: 100px; color: var(--text-muted); }
+        .prob-track {
+            flex: 1;
+            height: 8px;
+            background: var(--panel-border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .prob-fill {
+            height: 100%;
+            background: var(--accent-red);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .prob-val { width: 40px; font-weight: bold; text-align: right; }
+
+        .feature-desc {
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(255, 77, 77, 0.2);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header">
+        <h2>Deep Scene Visualizer</h2>
+        <p>Hierarchical Feature Extraction across Deep Neural Network Layers</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-bar">
+        <div class="select-group">
+            <label for="sceneSelect">Select Input Scene:</label>
+            <select id="sceneSelect" onchange="changeScene()">
+                <option value="beach">Tropical Beach Scene</option>
+                <option value="forest">Dense Forest Scene</option>
+                <option value="city">Urban City Skyline</option>
+            </select>
+        </div>
+
+        <div class="layer-slider-container">
+            <span style="font-size: 12px; font-weight: bold; color: var(--text-muted);">LAYER:</span>
+            <input type="range" id="layerSlider" min="1" max="4" value="1" oninput="updateDashboard()">
+            <span id="layerLabel" style="font-size: 13px; font-family: monospace; font-weight: bold; color: var(--accent-red); min-width: 60px;">Layer 1</span>
+        </div>
+    </div>
+
+    <!-- Main Visual Grid -->
+    <div class="visual-grid">
+        
+        <!-- Input RGB Image -->
+        <div class="card">
+            <div class="card-title">
+                <span>1. Raw Input Image</span>
+                <span style="color: var(--text-muted);">256x256 RGB</span>
+            </div>
+            <canvas id="inputCanvas" width="220" height="220"></canvas>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 10px; text-align: center;">
+                Raw RGB Pixels (Low-level sensory input)
+            </div>
+        </div>
+
+        <!-- Layer Activation Map -->
+        <div class="card">
+            <div class="card-title">
+                <span id="layerTitleText">2. Layer 1 Feature Activations</span>
+                <span id="receptiveFieldText" style="color: var(--accent-cyan);">Receptive Field: 3x3 px</span>
+            </div>
+            
+            <div class="fmap-grid" id="fmapContainer">
+                <!-- 4 Feature Map Channels dynamically rendered -->
+            </div>
+        </div>
+
+        <!-- Layer Analysis & Classification HUD -->
+        <div class="layer-info-box">
+            <div>
+                <span class="badge" id="layerBadge">Layer 1: Low-Level Primitives</span>
+                <div class="feature-desc" id="featureDescriptionText">
+                    Extracts local high-frequency spatial patterns: oriented edges, color gradients, and intensity transitions.
+                </div>
+            </div>
+
+            <div>
+                <span style="font-size: 11px; font-weight: bold; color: var(--text-muted); text-transform: uppercase;">
+                    Scene Class Probabilities
+                </span>
+                <div class="prob-bar-container">
+                    <div class="prob-row">
+                        <span class="prob-label">Beach</span>
+                        <div class="prob-track"><div class="prob-fill" id="barBeach"></div></div>
+                        <span class="prob-val" id="valBeach">0%</span>
+                    </div>
+                    <div class="prob-row">
+                        <span class="prob-label">Forest</span>
+                        <div class="prob-track"><div class="prob-fill" id="barForest"></div></div>
+                        <span class="prob-val" id="valForest">0%</span>
+                    </div>
+                    <div class="prob-row">
+                        <span class="prob-label">City</span>
+                        <div class="prob-track"><div class="prob-fill" id="barCity"></div></div>
+                        <span class="prob-val" id="valCity">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const inputCanvas = document.getElementById('inputCanvas');
+    const ctxInput = inputCanvas.getContext('2d');
+    const layerSlider = document.getElementById('layerSlider');
+
+    let currentScene = 'beach';
+
+    // Synthetic scene drawer
+    function drawScene(type) {
+        ctxInput.clearRect(0, 0, 220, 220);
+        
+        if (type === 'beach') {
+            // Sky
+            let gradSky = ctxInput.createLinearGradient(0, 0, 0, 110);
+            gradSky.addColorStop(0, '#ff7e5f');
+            gradSky.addColorStop(1, '#feb47b');
+            ctxInput.fillStyle = gradSky;
+            ctxInput.fillRect(0, 0, 220, 110);
+            
+            // Sun
+            ctxInput.fillStyle = '#ffffff';
+            ctxInput.beginPath(); ctxInput.arc(170, 50, 20, 0, Math.PI*2); ctxInput.fill();
+
+            // Sea
+            ctxInput.fillStyle = '#0077be';
+            ctxInput.fillRect(0, 110, 220, 45);
+
+            // Sand
+            ctxInput.fillStyle = '#e4c590';
+            ctxInput.fillRect(0, 155, 220, 65);
+
+            // Palm Tree Trunk & Leaves
+            ctxInput.strokeStyle = '#5c4033';
+            ctxInput.lineWidth = 6;
+            ctxMathCurve(ctxInput, 40, 220, 50, 120, 70, 100);
+
+            ctxInput.fillStyle = '#2e8b57';
+            ctxInput.beginPath(); ctxInput.arc(70, 100, 25, 0, Math.PI*2); ctxInput.fill();
+        } 
+        else if (type === 'forest') {
+            // Sky
+            ctxInput.fillStyle = '#87ceeb';
+            ctxInput.fillRect(0, 0, 220, 80);
+
+            // Hills
+            ctxInput.fillStyle = '#2d5a27';
+            ctxInput.beginPath(); ctxInput.arc(60, 180, 110, 0, Math.PI*2); ctxInput.fill();
+            ctxInput.fillStyle = '#1e3f1b';
+            ctxInput.beginPath(); ctxInput.arc(170, 190, 100, 0, Math.PI*2); ctxInput.fill();
+
+            // Trees
+            drawTree(ctxInput, 50, 120);
+            drawTree(ctxInput, 110, 100);
+            drawTree(ctxInput, 160, 130);
+        } 
+        else if (type === 'city') {
+            // Sunset Sky
+            let grad = ctxInput.createLinearGradient(0, 0, 0, 150);
+            grad.addColorStop(0, '#2c3e50');
+            grad.addColorStop(1, '#000000');
+            ctxInput.fillStyle = grad;
+            ctxInput.fillRect(0, 0, 220, 220);
+
+            // Buildings
+            ctxInput.fillStyle = '#1a252f';
+            ctxInput.fillRect(20, 80, 45, 140);
+            ctxInput.fillRect(75, 50, 55, 170);
+            ctxInput.fillRect(140, 100, 50, 120);
+
+            // Windows
+            ctxInput.fillStyle = '#f1c40f';
+            for(let y = 60; y < 200; y += 15) {
+                for(let x = 85; x < 120; x += 12) {
+                    if (Math.random() > 0.3) ctxInput.fillRect(x, y, 5, 8);
+                }
+            }
+        }
+    }
+
+    function ctxMathCurve(ctx, x1, y1, cx, cy, x2, y2) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.quadraticCurveTo(cx, cy, x2, y2);
+        ctx.stroke();
+    }
+
+    function drawTree(ctx, x, y) {
+        ctx.fillStyle = '#4a2e18';
+        ctx.fillRect(x - 5, y, 10, 40);
+        ctx.fillStyle = '#0f5257';
+        ctx.beginPath();
+        ctx.moveTo(x, y - 35);
+        ctx.lineTo(x - 20, y + 5);
+        ctx.lineTo(x + 20, y + 5);
+        ctx.fill();
+    }
+
+    // Render Simulated Feature Maps for Selected Layer
+    function renderFeatureMaps(layer) {
+        const container = document.getElementById('fmapContainer');
+        container.innerHTML = '';
+
+        const channelNames = {
+            1: ['Horiz. Edges', 'Vert. Edges', 'Color Grad', 'Gabor High-Freq'],
+            2: ['Water Ripple', 'Foliage Texture', 'Linear Grid', 'Gradient Horizon'],
+            3: ['Tree/Foliage', 'Structure Parts', 'Horizon Mask', 'Boundary Objects'],
+            4: ['Beach Concept', 'Forest Concept', 'City Concept', 'Global Scene']
+        };
+
+        for (let i = 0; i < 4; i++) {
+            let item = document.createElement('div');
+            item.className = 'fmap-item' + (i === 0 ? ' active' : '');
+            
+            let cvs = document.createElement('canvas');
+            cvs.width = 80;
+            cvs.height = 80;
+            let ctx = cvs.getContext('2d');
+
+            drawSimulatedFilter(ctx, layer, i, currentScene);
+
+            let lbl = document.createElement('div');
+            lbl.className = 'fmap-label';
+            lbl.innerText = channelNames[layer][i];
+
+            item.appendChild(cvs);
+            item.appendChild(lbl);
+            container.appendChild(item);
+        }
+    }
+
+    function drawSimulatedFilter(ctx, layer, channel, scene) {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, 80, 80);
+
+        let imgData = ctx.createImageData(80, 80);
+        let data = imgData.data;
+
+        for (let y = 0; y < 80; y++) {
+            for (let x = 0; x < 80; x++) {
+                let idx = (y * 80 + x) * 4;
+                let val = 0;
+
+                if (layer === 1) {
+                    // Edges / High Freq
+                    if (channel === 0) val = Math.abs(Math.sin(y * 0.3)) * 255;
+                    else if (channel === 1) val = Math.abs(Math.cos(x * 0.3)) * 255;
+                    else val = (x + y) % 20 < 10 ? 200 : 20;
+                } 
+                else if (layer === 2) {
+                    // Textures / Motifs
+                    val = (Math.sin(x*0.2) * Math.cos(y*0.2) > 0) ? 220 : 30;
+                } 
+                else if (layer === 3) {
+                    // Object parts
+                    let dist = Math.hypot(x - 40, y - 40);
+                    val = dist < (channel * 8 + 12) ? 240 : 10;
+                } 
+                else if (layer === 4) {
+                    // Global Concept Heatmap
+                    let match = false;
+                    if (scene === 'beach' && channel === 0) match = true;
+                    if (scene === 'forest' && channel === 1) match = true;
+                    if (scene === 'city' && channel === 2) match = true;
+                    val = match ? 230 : 25;
+                }
+
+                data[idx] = channel === 0 ? val : (channel === 3 ? val : 0); // Red/Green tints
+                data[idx+1] = channel === 1 ? val : (channel === 3 ? val : 0);
+                data[idx+2] = channel === 2 ? val : 50;
+                data[idx+3] = 255;
+            }
+        }
+        ctx.putImageData(imgData, 0, 0);
+    }
+
+    function updateDashboard() {
+        const layer = parseInt(layerSlider.value);
+        document.getElementById('layerLabel').innerText = `Layer ${layer}`;
+        document.getElementById('layerTitleText').innerText = `2. Layer ${layer} Feature Activations`;
+
+        const layerMeta = {
+            1: {
+                rf: 'Receptive Field: 3x3 px',
+                badge: 'Layer 1: Low-Level Primitives',
+                desc: 'Detects basic spatial edge orientations, color transitions, and local intensity gradients across raw pixels.',
+                probs: { beach: 33, forest: 33, city: 34 }
+            },
+            2: {
+                rf: 'Receptive Field: 15x15 px',
+                badge: 'Layer 2: Textures & Motifs',
+                desc: 'Combines edges to form repeated textures (water ripples, bark/foliage grains, window grid alignments).',
+                probs: { beach: 52, forest: 28, city: 20 }
+            },
+            3: {
+                rf: 'Receptive Field: 63x63 px',
+                badge: 'Layer 3: Structural Object Parts',
+                desc: 'Assembles textures into distinct structural components (palm leaves, building outlines, ocean horizon line).',
+                probs: { beach: 82, forest: 12, city: 6 }
+            },
+            4: {
+                rf: 'Receptive Field: 220x220 px (Global)',
+                badge: 'Layer 4: High-Level Scene Semantics',
+                desc: 'Integrates all object parts into global semantic understanding to produce definitive scene classification.',
+                probs: currentScene === 'beach' ? { beach: 96, forest: 2, city: 2 } :
+                       currentScene === 'forest' ? { beach: 3, forest: 94, city: 3 } :
+                       { beach: 1, forest: 4, city: 95 }
+            }
+        };
+
+        const meta = layerMeta[layer];
+        document.getElementById('receptiveFieldText').innerText = meta.rf;
+        document.getElementById('layerBadge').innerText = meta.badge;
+        document.getElementById('featureDescriptionText').innerText = meta.desc;
+
+        // Update probability bars
+        document.getElementById('barBeach').style.width = meta.probs.beach + '%';
+        document.getElementById('valBeach').innerText = meta.probs.beach + '%';
+
+        document.getElementById('barForest').style.width = meta.probs.forest + '%';
+        document.getElementById('valForest').innerText = meta.probs.forest + '%';
+
+        document.getElementById('barCity').style.width = meta.probs.city + '%';
+        document.getElementById('valCity').innerText = meta.probs.city + '%';
+
+        renderFeatureMaps(layer);
+    }
+
+    function changeScene() {
+        currentScene = document.getElementById('sceneSelect').value;
+        drawScene(currentScene);
+        updateDashboard();
+    }
+
+    // Init
+    drawScene('beach');
+    updateDashboard();
+</script>
+</body>
+</html>
