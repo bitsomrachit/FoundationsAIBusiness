@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Approximation</title>
+    <title>Universal Approximation - Nielsen 2-Neuron Network</title>
     <style>
         :root {
             --bg-color: #0c0202;
@@ -55,7 +55,7 @@
             box-shadow: 0 12px 40px rgba(0,0,0,0.85);
             border: 1px solid var(--border-color);
             width: 100%;
-            max-width: 880px;
+            max-width: 900px;
         }
 
         /* Navigation Tabs */
@@ -83,16 +83,36 @@
             box-shadow: 0 0 12px var(--red-glow);
         }
 
-        .canvas-container {
-            position: relative;
+        /* Canvas Grid Container */
+        .visual-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .canvas-card {
             background-color: #050101;
             border-radius: 8px;
             border: 1px solid var(--border-color);
-            margin-bottom: 15px;
+            padding: 10px;
+            position: relative;
         }
+
+        .card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
         canvas { display: block; width: 100%; height: auto; }
 
-        /* Formula HUD */
+        /* HUD Panel */
         .hud-panel {
             background: rgba(10, 2, 2, 0.9);
             border: 1px solid var(--border-color);
@@ -196,20 +216,35 @@
 
     <div class="header">
         <h2>Universal Approximation Theorem</h2>
-        <p class="subtitle">Nielsen Rectangular Step Model: 2 Step Neurons = 1 Rectangular Tower</p>
+        <p class="subtitle">Nielsen Step Model: Linear Weights (wx + b ≥ 0) → Threshold s = -b/w → Tower</p>
     </div>
 
     <div class="dashboard">
         
         <!-- Navigation -->
         <div class="tabs">
-            <button class="tab-btn active" id="tab1" onclick="switchMode(1)">1. Single Rectangular Tower (s₁, s₂, h, x → y)</button>
-            <button class="tab-btn" id="tab2" onclick="switchMode(2)">2. Multi-Tower Fitting (Arbitrary Functions)</button>
+            <button class="tab-btn active" id="tab1" onclick="switchMode(1)">1. 2-Neuron Architecture & Single Tower</button>
+            <button class="tab-btn" id="tab2" onclick="switchMode(2)">2. Multi-Tower Function Fitting</button>
         </div>
 
-        <!-- Canvas -->
-        <div class="canvas-container">
-            <canvas id="mathCanvas" width="840" height="320"></canvas>
+        <!-- Canvas Visuals -->
+        <div class="visual-grid">
+            <!-- Canvas 1: 2-Neuron Network Architecture Diagram -->
+            <div class="canvas-card" id="netArchitectureCard">
+                <div class="card-title">
+                    <span>Neural Network Architecture & Signal Propagation</span>
+                    <span style="color:var(--white);" id="probeStatus">x = 0.50</span>
+                </div>
+                <canvas id="netCanvas" width="860" height="180"></canvas>
+            </div>
+
+            <!-- Canvas 2: Function Plot -->
+            <div class="canvas-card">
+                <div class="card-title">
+                    <span>Activation Curves & Output Rectangular Tower</span>
+                </div>
+                <canvas id="mathCanvas" width="860" height="260"></canvas>
+            </div>
         </div>
 
         <!-- Dynamic Math Formula HUD -->
@@ -217,50 +252,65 @@
             <!-- Populated via JavaScript -->
         </div>
 
-        <!-- CONTROLS MODE 1: Single Rectangular Tower -->
+        <!-- CONTROLS MODE 1: 2-Neuron Single Tower -->
         <div class="controls" id="mode1-controls">
             <div class="control-grid">
-                <!-- Step Position 1 -->
+                <!-- Neuron 1: Weight & Bias / Threshold -->
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span style="color:var(--orange-bright)">Step 1 Threshold (s₁)</span>
-                        <span class="val" id="s1Val">0.30</span>
+                        <span style="color:var(--orange-bright)">Neuron 1 Threshold s₁ = -b₁/w₁</span>
+                        <span class="val" id="s1Val">s₁ = 0.30</span>
                     </div>
-                    <input type="range" id="s1Slider" min="0" max="1" step="0.01" value="0.30">
+                    <input type="range" id="s1Slider" min="0.05" max="0.95" step="0.01" value="0.30">
+                    <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="n1LinearFormula">
+                        Condition: 10.0·x + (-3.0) ≥ 0
+                    </div>
                 </div>
                 
-                <!-- Step Position 2 -->
+                <!-- Neuron 2: Weight & Bias / Threshold -->
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span style="color:var(--cyan-bright)">Step 2 Threshold (s₂)</span>
-                        <span class="val" id="s2Val">0.70</span>
+                        <span style="color:var(--cyan-bright)">Neuron 2 Threshold s₂ = -b₂/w₂</span>
+                        <span class="val" id="s2Val">s₂ = 0.70</span>
                     </div>
-                    <input type="range" id="s2Slider" min="0" max="1" step="0.01" value="0.70">
+                    <input type="range" id="s2Slider" min="0.05" max="0.95" step="0.01" value="0.70">
+                    <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="n2LinearFormula">
+                        Condition: 10.0·x + (-7.0) ≥ 0
+                    </div>
                 </div>
 
-                <!-- Tower Height -->
+                <!-- Weight Scaling Magnitude (w) -->
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span>Tower Height (h)</span>
-                        <span class="val" id="hVal">0.80</span>
+                        <span>Hidden Weight Scale (w₁ = w₂ = w)</span>
+                        <span class="val" id="wVal">w = 10.0</span>
+                    </div>
+                    <input type="range" id="wSlider" min="1" max="50" step="1" value="10">
+                </div>
+
+                <!-- Output Weight (w_out) / Tower Height -->
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Output Weight w_out (Height h)</span>
+                        <span class="val" id="hVal">h = 0.80</span>
                     </div>
                     <input type="range" id="hSlider" min="-1" max="1.5" step="0.05" value="0.80">
                 </div>
 
                 <!-- Input Probe X -->
-                <div class="slider-group">
+                <div class="slider-group" style="grid-column: span 2;">
                     <div class="slider-header">
                         <span style="color:var(--white);">Test Input Probe (x)</span>
-                        <span class="val" id="xProbeVal">0.50</span>
+                        <span class="val" id="xProbeVal">x = 0.50</span>
                     </div>
                     <input type="range" id="xProbeSlider" min="0" max="1" step="0.01" value="0.50">
                 </div>
             </div>
 
             <div class="legend">
-                <div><span class="legend-dot" style="background:var(--orange-bright)"></span> Neuron 1 Activation: θ(x ≥ s₁)</div>
-                <div><span class="legend-dot" style="background:var(--cyan-bright)"></span> Neuron 2 Activation: θ(x ≥ s₂)</div>
-                <div><span class="legend-dot" style="background:var(--red-bright)"></span> Rectangular Tower Output: y = h × [θ(x ≥ s₁) - θ(x ≥ s₂)]</div>
+                <div><span class="legend-dot" style="background:var(--orange-bright)"></span> Neuron 1: a₁ = θ(w₁x + b₁ ≥ 0)</div>
+                <div><span class="legend-dot" style="background:var(--cyan-bright)"></span> Neuron 2: a₂ = θ(w₂x + b₂ ≥ 0)</div>
+                <div><span class="legend-dot" style="background:var(--red-bright)"></span> Output Net: y = w_out1·a₁ + w_out2·a₂</div>
             </div>
         </div>
 
@@ -288,177 +338,251 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('mathCanvas');
-        const ctx = canvas.getContext('2d');
+        // Main Plot Canvas
+        const mathCanvas = document.getElementById('mathCanvas');
+        const ctxMath = mathCanvas.getContext('2d');
         
+        // Network Diagram Canvas
+        const netCanvas = document.getElementById('netCanvas');
+        const ctxNet = netCanvas.getContext('2d');
+
         // Mode 1 Sliders
         const s1Slider = document.getElementById('s1Slider');
         const s2Slider = document.getElementById('s2Slider');
+        const wSlider = document.getElementById('wSlider');
         const hSlider = document.getElementById('hSlider');
         const xProbeSlider = document.getElementById('xProbeSlider');
 
-        // Mode 2 Sliders
+        // Mode 2 Controls
         const nSlider = document.getElementById('nSlider');
         const btnTrain = document.getElementById('btnTrain');
         const pairCount = document.getElementById('pairCount');
         const hudPanel = document.getElementById('hudPanel');
 
-        // Dimensions
-        const width = canvas.width;
-        const height = canvas.height;
-        const padX = 50;
-        const padY = 40;
-        const drawW = width - padX * 2;
-        const drawH = height - padY * 2;
-
         let currentMode = 1;
         let isTrainingMulti = false;
         let multiTrainInterval;
 
-        // Clean 0/1 Step Activation Function: \theta(x >= s)
-        function stepFn(x, threshold) {
-            return x >= threshold ? 1.0 : 0.0;
+        // Step function activation: \theta(w*x + b >= 0)
+        function stepNeuron(x, w, b) {
+            return (w * x + b >= 0) ? 1.0 : 0.0;
         }
 
-        // Rectangular Tower Evaluation
-        function towerFn(x, s1, s2, h) {
-            return h * (stepFn(x, s1) - stepFn(x, s2));
-        }
-
-        // Target Continuous Function for Tab 2
+        // Target function for Tab 2
         function targetFunction(x) {
             return 0.5 + 0.35 * Math.sin(x * Math.PI * 3) - 0.15 * Math.cos(x * Math.PI * 7);
         }
 
-        function drawGrid(yMin = -0.5, yMax = 1.5) {
-            ctx.clearRect(0, 0, width, height);
-            
-            // Grid lines
-            ctx.strokeStyle = '#260808';
-            ctx.lineWidth = 1;
-            for(let i = 0; i <= 10; i++) {
-                let x = padX + (i / 10) * drawW;
-                ctx.beginPath(); ctx.moveTo(x, padY); ctx.lineTo(x, height - padY); ctx.stroke();
+        // Draw Network Architecture Graph
+        function drawNetworkArchitecture(w1, b1, s1, a1, w2, b2, s2, a2, wo1, wo2, x, yOut) {
+            const w = netCanvas.width;
+            const h = netCanvas.height;
+            ctxNet.clearRect(0, 0, w, h);
+
+            // Node coordinates
+            const xNode = { x: 90, y: h / 2, label: 'Input x', val: `x=${x.toFixed(2)}` };
+            const n1Node = { x: 380, y: 45, label: 'Neuron 1', val: `a₁=${a1.toFixed(0)}` };
+            const n2Node = { x: 380, y: 135, label: 'Neuron 2', val: `a₂=${a2.toFixed(0)}` };
+            const yNode = { x: 740, y: h / 2, label: 'Output y', val: `y=${yOut.toFixed(2)}` };
+
+            // Helper to draw connection lines with weights
+            function drawConnection(from, to, weightText, subText, active, color) {
+                ctxNet.beginPath();
+                ctxNet.moveTo(from.x, from.y);
+                ctxNet.lineTo(to.x, to.y);
+                ctxNet.strokeStyle = active ? color : '#3d0c0c';
+                ctxNet.lineWidth = active ? 2.5 : 1.5;
+                ctxNet.stroke();
+
+                // Weight Label Box
+                const midX = (from.x + to.x) / 2;
+                const midY = (from.y + to.y) / 2;
+                
+                ctxNet.fillStyle = '#050101';
+                ctxNet.fillRect(midX - 55, midY - 14, 110, 26);
+                ctxNet.strokeStyle = active ? color : '#3d0c0c';
+                ctxNet.lineWidth = 1;
+                ctxNet.strokeRect(midX - 55, midY - 14, 110, 26);
+
+                ctxNet.fillStyle = active ? '#ffffff' : '#d69898';
+                ctxNet.font = '11px sans-serif';
+                ctxNet.textAlign = 'center';
+                ctxNet.fillText(weightText, midX, midY - 2);
+                
+                ctxNet.fillStyle = color;
+                ctxNet.font = '10px monospace';
+                ctxNet.fillText(subText, midX, midY + 9);
             }
 
-            // Horizontal zero line
-            let zeroY = height - padY - ((0 - yMin) / (yMax - yMin)) * drawH;
-            ctx.strokeStyle = '#521515';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(padX, zeroY); ctx.lineTo(width - padX, zeroY); ctx.stroke();
+            // Draw edges
+            drawConnection(xNode, n1Node, `w₁ = ${w1.toFixed(1)}`, `b₁ = ${b1.toFixed(1)}`, a1 > 0, '#ff9900');
+            drawConnection(xNode, n2Node, `w₂ = ${w2.toFixed(1)}`, `b₂ = ${b2.toFixed(1)}`, a2 > 0, '#00e5ff');
+            drawConnection(n1Node, yNode, `w_out1 = ${wo1.toFixed(2)}`, `a₁ = ${a1.toFixed(0)}`, a1 > 0, '#ff9900');
+            drawConnection(n2Node, yNode, `w_out2 = ${wo2.toFixed(2)}`, `a₂ = ${a2.toFixed(0)}`, a2 > 0, '#00e5ff');
+
+            // Helper to draw nodes
+            function drawNode(node, color, isActive) {
+                ctxNet.beginPath();
+                ctxNet.arc(node.x, node.y, 22, 0, Math.PI * 2);
+                ctxNet.fillStyle = isActive ? color : '#1a0505';
+                ctxNet.fill();
+                ctxNet.strokeStyle = color;
+                ctxNet.lineWidth = 2;
+                ctxNet.stroke();
+
+                ctxNet.fillStyle = isActive ? '#000000' : '#ffffff';
+                ctxNet.font = 'bold 11px sans-serif';
+                ctxNet.textAlign = 'center';
+                ctxNet.fillText(node.label, node.x, node.y - 3);
+
+                ctxNet.fillStyle = isActive ? '#000000' : color;
+                ctxNet.font = 'bold 10px monospace';
+                ctxNet.fillText(node.val, node.x, node.y + 9);
+            }
+
+            drawNode(xNode, '#ffffff', true);
+            drawNode(n1Node, '#ff9900', a1 > 0);
+            drawNode(n2Node, '#00e5ff', a2 > 0);
+            drawNode(yNode, '#ff3333', Math.abs(yOut) > 0.001);
+        }
+
+        function drawMathGrid(yMin = -0.5, yMax = 1.5) {
+            const w = mathCanvas.width;
+            const h = mathCanvas.height;
+            const padX = 50, padY = 30;
+            const drawW = w - padX * 2;
+            const drawH = h - padY * 2;
+
+            ctxMath.clearRect(0, 0, w, h);
+            
+            // Grid lines
+            ctxMath.strokeStyle = '#260808';
+            ctxMath.lineWidth = 1;
+            for(let i = 0; i <= 10; i++) {
+                let x = padX + (i / 10) * drawW;
+                ctxMath.beginPath(); ctxMath.moveTo(x, padY); ctxMath.lineTo(x, h - padY); ctxMath.stroke();
+            }
+
+            // Zero line
+            let zeroY = h - padY - ((0 - yMin) / (yMax - yMin)) * drawH;
+            ctxMath.strokeStyle = '#521515';
+            ctxMath.lineWidth = 1.5;
+            ctxMath.beginPath(); ctxMath.moveTo(padX, zeroY); ctxMath.lineTo(w - padX, zeroY); ctxMath.stroke();
 
             // Axis labels
-            ctx.fillStyle = '#a86b6b';
-            ctx.font = '11px sans-serif';
-            ctx.fillText('x = 0.0', padX - 10, height - padY + 20);
-            ctx.fillText('x = 1.0', width - padX - 15, height - padY + 20);
-            ctx.fillText(`y = ${yMax.toFixed(1)}`, 10, padY + 5);
-            ctx.fillText(`y = ${yMin.toFixed(1)}`, 10, height - padY);
-        }
+            ctxMath.fillStyle = '#a86b6b';
+            ctxMath.font = '11px sans-serif';
+            ctxMath.fillText('x = 0.0', padX - 10, h - padY + 18);
+            ctxMath.fillText('x = 1.0', w - padX - 15, h - padY + 18);
+            ctxMath.fillText(`y = ${yMax.toFixed(1)}`, 10, padY + 5);
+            ctxMath.fillText(`y = ${yMin.toFixed(1)}`, 10, h - padY);
 
-        // Helper to draw crisp 0/1 step functions on canvas
-        function drawStepCurve(threshold, color, lineWidth, dash = [], yMin = -0.5, yMax = 1.5) {
-            let toPy = y => height - padY - ((y - yMin) / (yMax - yMin)) * drawH;
-            let toPx = x => padX + x * drawW;
-
-            let pxThresh = toPx(threshold);
-            let py0 = toPy(0);
-            let py1 = toPy(1);
-
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.setLineDash(dash);
-
-            // From x=0 to threshold at 0
-            ctx.moveTo(padX, py0);
-            ctx.lineTo(pxThresh, py0);
-            // Sharp vertical step jump at threshold
-            ctx.lineTo(pxThresh, py1);
-            // From threshold to x=1 at 1
-            ctx.lineTo(padX + drawW, py1);
-
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-
-        // Helper to draw clean sharp rectangular towers
-        function drawRectangularTower(s1, s2, h, color, lineWidth, yMin = -0.5, yMax = 1.5) {
-            let toPy = y => height - padY - ((y - yMin) / (yMax - yMin)) * drawH;
-            let toPx = x => padX + x * drawW;
-
-            let px1 = toPx(s1);
-            let px2 = toPx(s2);
-            let py0 = toPy(0);
-            let pyH = toPy(h);
-
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-
-            ctx.moveTo(padX, py0);
-            ctx.lineTo(px1, py0);
-            ctx.lineTo(px1, pyH);
-            ctx.lineTo(px2, pyH);
-            ctx.lineTo(px2, py0);
-            ctx.lineTo(padX + drawW, py0);
-
-            ctx.stroke();
+            return { padX, padY, drawW, drawH };
         }
 
         function renderMode1() {
             let s1 = parseFloat(s1Slider.value);
             let s2 = parseFloat(s2Slider.value);
-            let h = parseFloat(hSlider.value);
+            let wMag = parseFloat(wSlider.value);
+            let hVal = parseFloat(hSlider.value);
             let xProbe = parseFloat(xProbeSlider.value);
 
-            // Maintain s1 <= s2 for proper tower construction
             if (s1 > s2) {
                 s2 = s1;
                 s2Slider.value = s1;
             }
 
+            // Linear weights and biases derive step positions: s = -b / w => b = -w * s
+            let w1 = wMag, b1 = -wMag * s1;
+            let w2 = wMag, b2 = -wMag * s2;
+            let wo1 = hVal, wo2 = -hVal;
+
             // Update UI Labels
-            document.getElementById('s1Val').innerText = s1.toFixed(2);
-            document.getElementById('s2Val').innerText = s2.toFixed(2);
-            document.getElementById('hVal').innerText = h.toFixed(2);
-            document.getElementById('xProbeVal').innerText = xProbe.toFixed(2);
+            document.getElementById('s1Val').innerText = `s₁ = ${s1.toFixed(2)}`;
+            document.getElementById('s2Val').innerText = `s₂ = ${s2.toFixed(2)}`;
+            document.getElementById('wVal').innerText = `w = ${wMag.toFixed(1)}`;
+            document.getElementById('hVal').innerText = `h = ${hVal.toFixed(2)}`;
+            document.getElementById('xProbeVal').innerText = `x = ${xProbe.toFixed(2)}`;
+            document.getElementById('probeStatus').innerText = `Input x = ${xProbe.toFixed(2)}`;
 
+            document.getElementById('n1LinearFormula').innerHTML = 
+                `Linear: ${w1.toFixed(1)}·x + (${b1.toFixed(1)}) ≥ 0 &nbsp;⇒&nbsp; Threshold s₁ = ${s1.toFixed(2)}`;
+            document.getElementById('n2LinearFormula').innerHTML = 
+                `Linear: ${w2.toFixed(1)}·x + (${b2.toFixed(1)}) ≥ 0 &nbsp;⇒&nbsp; Threshold s₂ = ${s2.toFixed(2)}`;
+
+            // Evaluate activations at current probe x
+            let a1_probe = stepNeuron(xProbe, w1, b1);
+            let a2_probe = stepNeuron(xProbe, w2, b2);
+            let y_probe = wo1 * a1_probe + wo2 * a2_probe;
+
+            // Draw Architecture Diagram
+            drawNetworkArchitecture(w1, b1, s1, a1_probe, w2, b2, s2, a2_probe, wo1, wo2, xProbe, y_probe);
+
+            // Draw Curves
             let yMin = -0.5, yMax = 1.5;
-            drawGrid(yMin, yMax);
+            let { padX, padY, drawW, drawH } = drawMathGrid(yMin, yMax);
 
-            // Draw individual 0/1 step threshold functions
-            drawStepCurve(s1, '#ff9900', 2, [4, 4], yMin, yMax);
-            drawStepCurve(s2, '#00e5ff', 2, [4, 4], yMin, yMax);
+            let toPy = y => mathCanvas.height - padY - ((y - yMin) / (yMax - yMin)) * drawH;
+            let toPx = x => padX + x * drawW;
 
-            // Draw combined rectangular tower
-            drawRectangularTower(s1, s2, h, '#ff3333', 3.5, yMin, yMax);
+            // Helper to draw step curves
+            function drawStepCurve(w, b, color, dash = []) {
+                let pxThresh = toPx(-b / w);
+                let py0 = toPy(0);
+                let py1 = toPy(1);
 
-            // Evaluate probe at xProbe
-            let a1_probe = stepFn(xProbe, s1);
-            let a2_probe = stepFn(xProbe, s2);
-            let y_probe = towerFn(xProbe, s1, s2, h);
+                ctxMath.beginPath();
+                ctxMath.strokeStyle = color;
+                ctxMath.lineWidth = 2;
+                ctxMath.setLineDash(dash);
+                ctxMath.moveTo(padX, py0);
+                ctxMath.lineTo(pxThresh, py0);
+                ctxMath.lineTo(pxThresh, py1);
+                ctxMath.lineTo(padX + drawW, py1);
+                ctxMath.stroke();
+                ctxMath.setLineDash([]);
+            }
 
-            // Draw vertical probe line
-            let pxProbe = padX + xProbe * drawW;
-            let pyProbe = height - padY - ((y_probe - yMin) / (yMax - yMin)) * drawH;
+            // Draw Neuron 1 and 2 step activations
+            drawStepCurve(w1, b1, '#ff9900', [4, 4]);
+            drawStepCurve(w2, b2, '#00e5ff', [4, 4]);
 
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.setLineDash([2, 2]);
-            ctx.beginPath(); ctx.moveTo(pxProbe, padY); ctx.lineTo(pxProbe, height - padY); ctx.stroke();
-            ctx.setLineDash([]);
+            // Draw Rectangular Tower Output Curve y(x)
+            let px1 = toPx(s1);
+            let px2 = toPx(s2);
+            let py0 = toPy(0);
+            let pyH = toPy(hVal);
 
-            // Dot on output curve
-            ctx.fillStyle = '#ff3333';
-            ctx.beginPath(); ctx.arc(pxProbe, pyProbe, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
+            ctxMath.beginPath();
+            ctxMath.strokeStyle = '#ff3333';
+            ctxMath.lineWidth = 3.5;
+            ctxMath.moveTo(padX, py0);
+            ctxMath.lineTo(px1, py0);
+            ctxMath.lineTo(px1, pyH);
+            ctxMath.lineTo(px2, pyH);
+            ctxMath.lineTo(px2, py0);
+            ctxMath.lineTo(padX + drawW, py0);
+            ctxMath.stroke();
 
-            // Dynamic HUD Formula Update
+            // Probe Vertical Indicator Line
+            let pxProbe = toPx(xProbe);
+            let pyProbe = toPy(y_probe);
+
+            ctxMath.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctxMath.setLineDash([2, 2]);
+            ctxMath.beginPath(); ctxMath.moveTo(pxProbe, padY); ctxMath.lineTo(pxProbe, mathCanvas.height - padY); ctxMath.stroke();
+            ctxMath.setLineDash([]);
+
+            ctxMath.fillStyle = '#ff3333';
+            ctxMath.beginPath(); ctxMath.arc(pxProbe, pyProbe, 6, 0, Math.PI * 2); ctxMath.fill();
+            ctxMath.strokeStyle = '#ffffff'; ctxMath.lineWidth = 1.5; ctxMath.stroke();
+
+            // HUD Formula Display
             hudPanel.innerHTML = `
                 <div class="hud-item">Input: <span class="hud-val">x = ${xProbe.toFixed(2)}</span></div>
-                <div class="hud-item">Neuron 1: <span class="hud-val" style="color:var(--orange-bright)">θ(x ≥ ${s1.toFixed(2)}) = ${a1_probe.toFixed(0)}</span></div>
-                <div class="hud-item">Neuron 2: <span class="hud-val" style="color:var(--cyan-bright)">θ(x ≥ ${s2.toFixed(2)}) = ${a2_probe.toFixed(0)}</span></div>
-                <div class="hud-item">Output: <span class="hud-val" style="color:var(--red-bright)">y = ${h.toFixed(2)} × (${a1_probe.toFixed(0)} - ${a2_probe.toFixed(0)}) = ${y_probe.toFixed(2)}</span></div>
+                <div class="hud-item">Neuron 1: <span class="hud-val" style="color:var(--orange-bright)">θ(${w1.toFixed(0)}x + ${b1.toFixed(1)} ≥ 0) = ${a1_probe.toFixed(0)}</span></div>
+                <div class="hud-item">Neuron 2: <span class="hud-val" style="color:var(--cyan-bright)">θ(${w2.toFixed(0)}x + ${b2.toFixed(1)} ≥ 0) = ${a2_probe.toFixed(0)}</span></div>
+                <div class="hud-item">Output: <span class="hud-val" style="color:var(--red-bright)">y = ${wo1.toFixed(2)}·(${a1_probe.toFixed(0)}) + (${wo2.toFixed(2)})·(${a2_probe.toFixed(0)}) = ${y_probe.toFixed(2)}</span></div>
             `;
         }
 
@@ -466,8 +590,11 @@
             let N = parseInt(nSlider.value);
             pairCount.innerText = N;
 
+            // Hide architecture diagram in Mode 2
+            document.getElementById('netArchitectureCard').style.display = 'none';
+
             let yMin = -0.2, yMax = 1.2;
-            drawGrid(yMin, yMax);
+            let { padX, padY, drawW, drawH } = drawMathGrid(yMin, yMax);
 
             // Generate sample points
             let sampleCount = 20;
@@ -481,21 +608,21 @@
             // Draw White Sample Circles
             samples.forEach(pt => {
                 let px = padX + pt.x * drawW;
-                let py = height - padY - ((pt.y - yMin) / (yMax - yMin)) * drawH;
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+                let py = mathCanvas.height - padY - ((pt.y - yMin) / (yMax - yMin)) * drawH;
+                ctxMath.fillStyle = '#ffffff';
+                ctxMath.beginPath(); ctxMath.arc(px, py, 4, 0, Math.PI * 2); ctxMath.fill();
             });
 
-            // Draw Multi-Tower Piecewise Constant Curve
-            let toPy = y => height - padY - ((y - yMin) / (yMax - yMin)) * drawH;
+            // Draw Multi-Tower Piecewise Curve
+            let toPy = y => mathCanvas.height - padY - ((y - yMin) / (yMax - yMin)) * drawH;
             let toPx = x => padX + x * drawW;
 
-            ctx.beginPath();
-            ctx.strokeStyle = '#ff3333';
-            ctx.lineWidth = 3.5;
+            ctxMath.beginPath();
+            ctxMath.strokeStyle = '#ff3333';
+            ctxMath.lineWidth = 3.5;
 
             let py0 = toPy(0);
-            ctx.moveTo(padX, py0);
+            ctxMath.moveTo(padX, py0);
 
             for (let i = 0; i < N; i++) {
                 let s1 = i / N;
@@ -507,13 +634,13 @@
                 let px2 = toPx(s2);
                 let pyH = toPy(h_i);
 
-                ctx.lineTo(px1, pyH);
-                ctx.lineTo(px2, pyH);
-                ctx.lineTo(px2, py0);
+                ctxMath.lineTo(px1, pyH);
+                ctxMath.lineTo(px2, pyH);
+                ctxMath.lineTo(px2, py0);
             }
-            ctx.stroke();
+            ctxMath.stroke();
 
-            // Calculate Mean Squared Error (MSE)
+            // Calculate MSE
             let multiTowerFn = function(x) {
                 let sum = 0;
                 for (let i = 0; i < N; i++) {
@@ -521,7 +648,10 @@
                     let s2 = (i + 1) / N;
                     let mid = (s1 + s2) / 2;
                     let h_i = targetFunction(mid);
-                    sum += towerFn(x, s1, s2, h_i);
+                    let w = 100;
+                    let a1 = stepNeuron(x, w, -w * s1);
+                    let a2 = stepNeuron(x, w, -w * s2);
+                    sum += h_i * (a1 - a2);
                 }
                 return sum;
             };
@@ -542,8 +672,12 @@
         }
 
         function updateViz() {
-            if (currentMode === 1) renderMode1();
-            else renderMode2();
+            if (currentMode === 1) {
+                document.getElementById('netArchitectureCard').style.display = 'block';
+                renderMode1();
+            } else {
+                renderMode2();
+            }
         }
 
         function switchMode(mode) {
@@ -580,7 +714,7 @@
         }
 
         // Event Listeners
-        [s1Slider, s2Slider, hSlider, xProbeSlider].forEach(slider => {
+        [s1Slider, s2Slider, wSlider, hSlider, xProbeSlider].forEach(slider => {
             slider.addEventListener('input', updateViz);
         });
         nSlider.addEventListener('input', updateViz);
