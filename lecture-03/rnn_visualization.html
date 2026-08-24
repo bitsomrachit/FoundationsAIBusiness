@@ -2,17 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>RNN Forward Pass & Backpropagation Visualizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RNN Machine Translation & Training Visualizer</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --fwd-color: #38bdf8;
-      --bwd-color: #ef4444;
-      --node-border: #475569;
+      --bg: #090d16;
+      --card-bg: #111827;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --encoder-color: #38bdf8;  /* Cyan */
+      --context-color: #fbbf24;  /* Amber */
+      --decoder-color: #34d399;  /* Emerald */
+      --loss-color: #f87171;     /* Coral / Red */
+      --node-border: #374151;
     }
+
+    * { box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -29,17 +34,19 @@
 
     .container {
       background: var(--card-bg);
-      padding: 28px;
-      border-radius: 16px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-      max-width: 850px;
+      padding: 28px 36px;
+      border-radius: 20px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      max-width: 950px;
       width: 100%;
     }
 
     h2 {
-      margin-top: 0;
+      margin: 0 0 6px 0;
       text-align: center;
-      color: var(--text);
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
     }
 
     .subtitle {
@@ -49,11 +56,12 @@
       margin-bottom: 24px;
     }
 
+    /* Architecture Grid */
     .viz-canvas {
       position: relative;
-      height: 320px;
+      height: 380px;
       width: 100%;
-      margin: 20px 0;
+      margin: 10px 0;
     }
 
     svg.connections {
@@ -66,272 +74,342 @@
     }
 
     .line {
-      stroke: #334155;
+      stroke: #1f2937;
       stroke-width: 3;
-      transition: stroke 0.4s, stroke-width 0.4s;
+      transition: all 0.4s ease;
     }
 
-    .line.active-fwd {
-      stroke: var(--fwd-color);
-      stroke-width: 5;
+    .line.active-enc {
+      stroke: var(--encoder-color);
+      stroke-width: 4;
     }
 
-    .line.active-bwd {
-      stroke: var(--bwd-color);
+    .line.active-ctx {
+      stroke: var(--context-color);
       stroke-width: 5;
       stroke-dasharray: 6;
       animation: dash 1s linear infinite;
     }
 
+    .line.active-dec {
+      stroke: var(--decoder-color);
+      stroke-width: 4;
+    }
+
+    .line.active-bwd {
+      stroke: var(--loss-color);
+      stroke-width: 5;
+      stroke-dasharray: 6;
+      animation: dash-reverse 0.8s linear infinite;
+    }
+
     @keyframes dash {
       to { stroke-dashoffset: -12; }
     }
+    @keyframes dash-reverse {
+      to { stroke-dashoffset: 12; }
+    }
 
-    .nodes-grid {
+    .nodes-layout {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       display: flex;
-      justify-content: space-around;
-      align-items: center;
+      justify-content: space-between;
       z-index: 2;
     }
 
-    .step-column {
+    .section-group {
+      display: flex;
+      gap: 24px;
+      background: rgba(255,255,255,0.02);
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px dashed #1f2937;
+    }
+
+    .col {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
       height: 100%;
+      width: 75px;
     }
 
     .node {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
+      width: 58px;
+      height: 58px;
+      border-radius: 12px;
       background: #0f172a;
-      border: 3px solid var(--node-border);
+      border: 2px solid var(--node-border);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 1.1rem;
-      transition: all 0.3s;
+      font-size: 0.85rem;
+      transition: all 0.35s ease;
+      text-align: center;
     }
 
-    .node.active-fwd {
-      border-color: var(--fwd-color);
-      background: #0284c7;
-      box-shadow: 0 0 15px var(--fwd-color);
-    }
-
-    .node.active-bwd {
-      border-color: var(--bwd-color);
-      background: #dc2626;
-      box-shadow: 0 0 15px var(--bwd-color);
-    }
-
-    .label {
-      font-size: 0.8rem;
+    .node .word {
+      font-size: 0.75rem;
       color: var(--text-muted);
-      margin-top: 4px;
+      font-weight: normal;
+      margin-top: 2px;
+    }
+
+    /* States */
+    .node.enc-active {
+      border-color: var(--encoder-color);
+      background: rgba(56, 189, 248, 0.15);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+      color: var(--encoder-color);
+    }
+
+    .node.ctx-active {
+      border-color: var(--context-color);
+      background: rgba(251, 191, 36, 0.2);
+      box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+      color: var(--context-color);
+    }
+
+    .node.dec-active {
+      border-color: var(--decoder-color);
+      background: rgba(52, 211, 153, 0.15);
+      box-shadow: 0 0 16px rgba(52, 211, 153, 0.4);
+      color: var(--decoder-color);
+    }
+
+    .node.loss-active {
+      border-color: var(--loss-color);
+      background: rgba(248, 113, 113, 0.2);
+      box-shadow: 0 0 16px rgba(248, 113, 113, 0.5);
+      color: var(--loss-color);
+    }
+
+    .stage-label {
+      position: absolute;
+      top: -25px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .lbl-enc { color: var(--encoder-color); left: 70px; }
+    .lbl-dec { color: var(--decoder-color); right: 70px; }
+
+    /* Controls & Information Box */
+    .info-box {
+      background: #0b1329;
+      border-left: 4px solid var(--encoder-color);
+      padding: 16px 20px;
+      border-radius: 0 12px 12px 0;
+      margin: 20px 0 24px 0;
+      min-height: 60px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      transition: border-color 0.3s;
     }
 
     .controls {
       display: flex;
       gap: 12px;
       justify-content: center;
-      margin-top: 20px;
+      flex-wrap: wrap;
     }
 
     button {
-      background: #334155;
+      background: #1f2937;
       color: var(--text);
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
+      border: 1px solid #374151;
+      padding: 12px 22px;
+      border-radius: 10px;
       font-weight: 600;
+      font-size: 0.9rem;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
     }
 
-    button:hover { background: #475569; }
-    button.primary-fwd { background: #0284c7; }
-    button.primary-fwd:hover { background: #0369a1; }
-    button.primary-bwd { background: #dc2626; }
-    button.primary-bwd:hover { background: #b91c1c; }
+    button:hover { background: #374151; }
+    button.btn-enc { border-color: var(--encoder-color); color: var(--encoder-color); }
+    button.btn-enc:hover { background: rgba(56, 189, 248, 0.15); }
+    
+    button.btn-dec { border-color: var(--decoder-color); color: var(--decoder-color); }
+    button.btn-dec:hover { background: rgba(52, 211, 153, 0.15); }
 
-    .info-box {
-      background: #0f172a;
-      border-left: 4px solid var(--fwd-color);
-      padding: 14px 18px;
-      border-radius: 0 8px 8px 0;
-      margin-top: 20px;
-      min-height: 48px;
-      font-size: 0.95rem;
-      line-height: 1.4;
-      transition: border-color 0.3s;
-    }
+    button.btn-bwd { border-color: var(--loss-color); color: var(--loss-color); }
+    button.btn-bwd:hover { background: rgba(248, 113, 113, 0.15); }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>RNN Unrolled & Backpropagation (BPTT)</h2>
-  <div class="subtitle">Step through to see memory move forward and gradients flow backward.</div>
+  <h2>Machine Translation: English ➔ French</h2>
+  <div class="subtitle">Encoder-Decoder RNN Training with Teacher Forcing & Backpropagation</div>
 
   <div class="viz-canvas">
-    <svg class="connections" id="svg-connections">
-      <!-- Arrows dynamically rendered or statically defined -->
-      <defs>
-        <marker id="arrow-fwd" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
-        </marker>
-        <marker id="arrow-bwd" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/>
-        </marker>
-      </defs>
+    <div class="stage-label lbl-enc">1. Encoder (English Input)</div>
+    <div class="stage-label lbl-dec">2. Decoder (French Generation)</div>
 
-      <!-- Step 1 Verticals -->
-      <line id="l-x1-h1" x1="18%" y1="250" x2="18%" y2="160" class="line" />
-      <line id="l-h1-y1" x1="18%" y1="160" x2="18%" y2="70" class="line" />
+    <svg class="connections">
+      <!-- ENCODER FLOW -->
+      <line id="l-x1-h1" x1="8%" y1="310" x2="8%" y2="200" class="line" />
+      <line id="l-x2-h2" x1="22%" y1="310" x2="22%" y2="200" class="line" />
+      <line id="l-x3-h3" x1="36%" y1="310" x2="36%" y2="200" class="line" />
+      <line id="l-h1-h2" x1="8%" y1="200" x2="22%" y2="200" class="line" />
+      <line id="l-h2-h3" x1="22%" y1="200" x2="36%" y2="200" class="line" />
 
-      <!-- Step 2 Verticals -->
-      <line id="l-x2-h2" x1="50%" y1="250" x2="50%" y2="160" class="line" />
-      <line id="l-h2-y2" x1="50%" y1="160" x2="50%" y2="70" class="line" />
+      <!-- CONTEXT VECTOR BRIDGE -->
+      <line id="l-ctx" x1="36%" y1="200" x2="64%" y2="200" class="line" />
 
-      <!-- Step 3 Verticals -->
-      <line id="l-x3-h3" x1="82%" y1="250" x2="82%" y2="160" class="line" />
-      <line id="l-h3-y3" x1="82%" y1="160" x2="82%" y2="70" class="line" />
+      <!-- DECODER FLOW -->
+      <line id="l-s1-s2" x1="64%" y1="200" x2="78%" y2="200" class="line" />
+      <line id="l-s2-s3" x1="78%" y1="200" x2="92%" y2="200" class="line" />
 
-      <!-- Recurrent Connections -->
-      <line id="l-h1-h2" x1="18%" y1="160" x2="50%" y2="160" class="line" />
-      <line id="l-h2-h3" x1="50%" y1="160" x2="82%" y2="160" class="line" />
+      <line id="l-s1-y1" x1="64%" y1="200" x2="64%" y2="105" class="line" />
+      <line id="l-s2-y2" x1="78%" y1="200" x2="78%" y2="105" class="line" />
+      <line id="l-s3-y3" x1="92%" y1="200" x2="92%" y2="105" class="line" />
+
+      <!-- LOSS COMPUTATION LINES -->
+      <line id="l-y1-loss" x1="64%" y1="105" x2="64%" y2="30" class="line" />
+      <line id="l-y2-loss" x1="78%" y1="105" x2="78%" y2="30" class="line" />
+      <line id="l-y3-loss" x1="92%" y1="105" x2="92%" y2="30" class="line" />
     </svg>
 
-    <div class="nodes-grid">
-      <!-- Step 1 -->
-      <div class="step-column">
-        <div><div class="node" id="y1">y₁</div><div class="label">Output</div></div>
-        <div><div class="node" id="h1">h₁</div><div class="label">Memory</div></div>
-        <div><div class="node" id="x1">x₁</div><div class="label">Input</div></div>
+    <div class="nodes-layout">
+      <!-- ENCODER GROUP -->
+      <div class="section-group">
+        <div class="col">
+          <div style="height:58px"></div>
+          <div class="node" id="h1">h₁<div class="word">Mem 1</div></div>
+          <div class="node" id="x1">x₁<div class="word">"The"</div></div>
+        </div>
+        <div class="col">
+          <div style="height:58px"></div>
+          <div class="node" id="h2">h₂<div class="word">Mem 2</div></div>
+          <div class="node" id="x2">x₂<div class="word">"keys"</div></div>
+        </div>
+        <div class="col">
+          <div style="height:58px"></div>
+          <div class="node" id="h3">h₃<div class="word">Context</div></div>
+          <div class="node" id="x3">x₃<div class="word">"are"</div></div>
+        </div>
       </div>
-      <!-- Step 2 -->
-      <div class="step-column">
-        <div><div class="node" id="y2">y₂</div><div class="label">Output</div></div>
-        <div><div class="node" id="h2">h₂</div><div class="label">Memory</div></div>
-        <div><div class="node" id="x2">x₂</div><div class="label">Input</div></div>
-      </div>
-      <!-- Step 3 -->
-      <div class="step-column">
-        <div><div class="node" id="y3">y₃</div><div class="label">Output</div></div>
-        <div><div class="node" id="h3">h₃</div><div class="label">Memory</div></div>
-        <div><div class="node" id="x3">x₃</div><div class="label">Input</div></div>
+
+      <!-- DECODER GROUP -->
+      <div class="section-group">
+        <div class="col">
+          <div class="node" id="loss1">Loss<div class="word">Target: Les</div></div>
+          <div class="node" id="y1">ŷ₁<div class="word">"Les"</div></div>
+          <div class="node" id="s1">s₁<div class="word">Dec 1</div></div>
+        </div>
+        <div class="col">
+          <div class="node" id="loss2">Loss<div class="word">Target: clés</div></div>
+          <div class="node" id="y2">ŷ₂<div class="word">"clés"</div></div>
+          <div class="node" id="s2">s₂<div class="word">Dec 2</div></div>
+        </div>
+        <div class="col">
+          <div class="node" id="loss3">Loss<div class="word">Target: sont</div></div>
+          <div class="node" id="y3">ŷ₃<div class="word">"sont"</div></div>
+          <div class="node" id="s3">s₃<div class="word">Dec 3</div></div>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="info-box" id="info-box">
-    Click <strong>Forward Step</strong> to feed words into the network sequentially.
+    Click <strong>Step 1: Encode English</strong> to read the source sentence into memory.
   </div>
 
   <div class="controls">
-    <button class="primary-fwd" onclick="nextForward()">Forward Step ➔</button>
-    <button class="primary-bwd" onclick="nextBackward()">⇦ Backprop Step (BPTT)</button>
-    <button onclick="resetViz()">Reset</button>
+    <button class="btn-enc" onclick="runEncode()">1. Encode English Sequence ➔</button>
+    <button class="btn-dec" onclick="runDecode()">2. Decode French & Compute Loss ➔</button>
+    <button class="btn-bwd" onclick="runBackprop()">3. Backpropagate & Update (BPTT) ⇦</button>
+    <button onclick="resetAll()">Reset</button>
   </div>
 </div>
 
 <script>
-  let step = 0;
-  let mode = 'none';
-
-  const infoText = {
-    fwd1: "<strong>Forward Step 1:</strong> Word <code>x₁</code> enters. Hidden state <code>h₁</code> computes initial summary memory and predicts <code>y₁</code>.",
-    fwd2: "<strong>Forward Step 2:</strong> Word <code>x₂</code> enters. <code>h₂</code> combines <code>x₂</code> with previous memory <code>h₁</code>, passing memory forward.",
-    fwd3: "<strong>Forward Step 3:</strong> Word <code>x₃</code> enters. <code>h₃</code> now holds information from all prior words (x₁, x₂, x₃).",
-    bwd1: "<strong>BPTT Step 1:</strong> Calculate Error at output <code>y₃</code>. Gradient flows backward into hidden memory <code>h₃</code>.",
-    bwd2: "<strong>BPTT Step 2:</strong> Error flows backward through time from <code>h₃ → h₂</code>, updating shared weights based on step 2 context.",
-    bwd3: "<strong>BPTT Step 3:</strong> Gradient reaches back to <code>h₁</code> and <code>x₁</code>. Shared weights across all time steps are updated together!"
-  };
-
-  function clearVisuals() {
+  function clearAll() {
     document.querySelectorAll('.node').forEach(n => n.className = 'node');
     document.querySelectorAll('.line').forEach(l => l.className = 'line');
   }
 
-  function setNodes(ids, type) {
+  function setNodes(ids, cls) {
     ids.forEach(id => {
       const el = document.getElementById(id);
-      if(el) el.classList.add(`active-${type}`);
+      if(el) el.classList.add(cls);
     });
   }
 
-  function setLines(ids, type) {
+  function setLines(ids, cls) {
     ids.forEach(id => {
       const el = document.getElementById(id);
-      if(el) el.classList.add(`active-${type}`);
+      if(el) el.classList.add(cls);
     });
   }
 
-  function updateInfo(text, type) {
+  function updateInfo(text, color) {
     const box = document.getElementById('info-box');
     box.innerHTML = text;
-    box.style.borderColor = type === 'bwd' ? 'var(--bwd-color)' : 'var(--fwd-color)';
+    box.style.borderColor = color;
   }
 
-  function nextForward() {
-    if (mode === 'bwd' || step >= 3) step = 0;
-    mode = 'fwd';
-    step++;
-
-    clearVisuals();
-
-    if (step === 1) {
-      setNodes(['x1', 'h1', 'y1'], 'fwd');
-      setLines(['l-x1-h1', 'l-h1-y1'], 'fwd');
-      updateInfo(infoText.fwd1, 'fwd');
-    } else if (step === 2) {
-      setNodes(['x1', 'h1', 'x2', 'h2', 'y2'], 'fwd');
-      setLines(['l-x1-h1', 'l-h1-h2', 'l-x2-h2', 'l-h2-y2'], 'fwd');
-      updateInfo(infoText.fwd2, 'fwd');
-    } else if (step === 3) {
-      setNodes(['x1', 'h1', 'x2', 'h2', 'x3', 'h3', 'y3'], 'fwd');
-      setLines(['l-x1-h1', 'l-h1-h2', 'l-x2-h2', 'l-h2-h3', 'l-x3-h3', 'l-h3-y3'], 'fwd');
-      updateInfo(infoText.fwd3, 'fwd');
-    }
+  function runEncode() {
+    clearAll();
+    // Highlight Encoder inputs and states
+    setNodes(['x1', 'x2', 'x3', 'h1', 'h2'], 'enc-active');
+    setNodes(['h3'], 'ctx-active'); // h3 is the final summary context vector
+    setLines(['l-x1-h1', 'l-x2-h2', 'l-x3-h3', 'l-h1-h2', 'l-h2-h3'], 'active-enc');
+    setLines(['l-ctx'], 'active-ctx');
+    
+    updateInfo(
+      "<strong>Step 1: Encoding English</strong><br/>" +
+      "The Encoder reads <em>'The keys are'</em> word by word. The hidden state continuously updates until <code>h₃</code> compresses the <strong>entire sentence concept</strong> into a single Context Vector.",
+      "var(--encoder-color)"
+    );
   }
 
-  function nextBackward() {
-    if (mode !== 'bwd') step = 0;
-    mode = 'bwd';
-    step++;
+  function runDecode() {
+    clearAll();
+    // Keep context active
+    setNodes(['h3'], 'ctx-active');
+    setLines(['l-ctx'], 'active-ctx');
 
-    clearVisuals();
+    // Activate Decoder states, outputs, and Loss nodes
+    setNodes(['s1', 's2', 's3', 'y1', 'y2', 'y3'], 'dec-active');
+    setNodes(['loss1', 'loss2', 'loss3'], 'loss-active');
 
-    if (step === 1) {
-      setNodes(['y3', 'h3', 'x3'], 'bwd');
-      setLines(['l-h3-y3', 'l-x3-h3'], 'bwd');
-      updateInfo(infoText.bwd1, 'bwd');
-    } else if (step === 2) {
-      setNodes(['y3', 'h3', 'h2', 'x2'], 'bwd');
-      setLines(['l-h3-y3', 'l-h2-h3', 'l-x2-h2'], 'bwd');
-      updateInfo(infoText.bwd2, 'bwd');
-    } else if (step >= 3) {
-      step = 3;
-      setNodes(['y3', 'h3', 'h2', 'h1', 'x1'], 'bwd');
-      setLines(['l-h3-y3', 'l-h2-h3', 'l-h1-h2', 'l-x1-h1'], 'bwd');
-      updateInfo(infoText.bwd3, 'bwd');
-    }
+    setLines(['l-s1-s2', 'l-s2-s3', 'l-s1-y1', 'l-s2-y2', 'l-s3-y3'], 'active-dec');
+    setLines(['l-y1-loss', 'l-y2-loss', 'l-y3-loss'], 'active-bwd');
+
+    updateInfo(
+      "<strong>Step 2: Decoding & Loss Calculation</strong><br/>" +
+      "Starting from the Context Vector, the Decoder generates French predictions (<em>'Les clés sont'</em>). Each predicted word is compared to the true target to calculate the <strong>Prediction Error (Loss)</strong>.",
+      "var(--decoder-color)"
+    );
   }
 
-  function resetViz() {
-    step = 0;
-    mode = 'none';
-    clearVisuals();
-    updateInfo("Click <strong>Forward Step</strong> to feed words into the network sequentially.", 'fwd');
+  function runBackprop() {
+    clearAll();
+    // Highlight full backprop path in red/coral
+    setNodes(['loss1', 'loss2', 'loss3', 'y1', 'y2', 'y3', 's1', 's2', 's3', 'h3', 'h2', 'h1'], 'loss-active');
+    setLines(['l-y1-loss', 'l-y2-loss', 'l-y3-loss', 'l-s1-y1', 'l-s2-y2', 'l-s3-y3', 'l-s1-s2', 'l-s2-s3', 'l-ctx', 'l-h2-h3', 'l-h1-h2'], 'active-bwd');
+
+    updateInfo(
+      "<strong>Step 3: Backpropagation Through Time (BPTT)</strong><br/>" +
+      "Gradients flow <strong>backwards</strong> from the Loss through the Decoder, across the Context Vector bridge, and all the way back through the Encoder to adjust shared parameters so translation accuracy improves next time!",
+      "var(--loss-color)"
+    );
+  }
+
+  function resetAll() {
+    clearAll();
+    updateInfo("Click <strong>Step 1: Encode English</strong> to read the source sentence into memory.", "var(--encoder-color)");
   }
 </script>
 </body>
