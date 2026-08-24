@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RNN Vanishing Gradient Visualizer</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --grad-high: #ef4444;    /* Vibrant Red (100% Gradient) */
+      --grad-mid: #f97316;     /* Orange */
+      --grad-low: #eab308;     /* Yellow */
+      --grad-zero: #374151;    /* Faded Gray (0% Gradient) */
+      --node-border: #1f2937;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 28px 36px;
+      border-radius: 20px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      max-width: 950px;
+      width: 100%;
+    }
+
+    h2 {
+      margin: 0 0 6px 0;
+      text-align: center;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    /* Visualization Canvas */
+    .viz-canvas {
+      position: relative;
+      height: 320px;
+      width: 100%;
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    svg.connections {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .line {
+      stroke: #1f2937;
+      stroke-width: 3;
+      transition: all 0.4s ease;
+    }
+
+    .line.active-bwd {
+      stroke: var(--grad-high);
+      stroke-width: 4;
+      stroke-dasharray: 6;
+      animation: dash-reverse 0.8s linear infinite;
+    }
+
+    @keyframes dash-reverse {
+      to { stroke-dashoffset: 12; }
+    }
+
+    .nodes-grid {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 0 10px;
+    }
+
+    .step-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 110px;
+    }
+
+    .node {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 3px solid var(--node-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: all 0.4s ease;
+      color: var(--text);
+    }
+
+    .node .step-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    .word-token {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    /* Bar Gauge for Gradient Magnitude */
+    .gauge-container {
+      width: 50px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid #1f2937;
+      border-radius: 6px;
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column-reverse;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .gauge-fill {
+      width: 100%;
+      height: 0%;
+      background: var(--grad-high);
+      transition: height 0.4s ease, background-color 0.4s ease;
+    }
+
+    .gauge-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.65rem;
+      font-weight: bold;
+      color: var(--text);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    }
+
+    /* Controls & Info */
+    .multiplier-select {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.02);
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+    }
+
+    .multiplier-select label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    select {
+      background: #1f2937;
+      color: var(--text);
+      border: 1px solid #374151;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .info-box {
+      background: #0d1527;
+      border-left: 4px solid var(--grad-high);
+      padding: 16px 20px;
+      border-radius: 0 12px 12px 0;
+      margin: 16px 0 24px 0;
+      min-height: 55px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    button {
+      background: #1f2937;
+      color: var(--text);
+      border: 1px solid #374151;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover { background: #374151; }
+    button.btn-primary { border-color: var(--grad-high); color: var(--grad-high); }
+    button.btn-primary:hover { background: rgba(239, 68, 68, 0.15); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>The Vanishing Gradient Problem</h2>
+  <div class="subtitle">Watch gradients exponential decay during Backpropagation Through Time (BPTT)</div>
+
+  <div class="multiplier-select">
+    <label for="decay-rate">Chain Rule Multiplier ($\sigma'(z) \cdot W$):</label>
+    <select id="decay-rate" onchange="resetViz()">
+      <option value="0.4">0.40 (Severe Vanishing - Standard RNN)</option>
+      <option value="0.7">0.70 (Moderate Decay)</option>
+      <option value="1.0">1.00 (Ideal Gradient Flow - LSTM / Gate Target)</option>
+    </select>
+  </div>
+
+  <div class="viz-canvas">
+    <svg class="connections">
+      <line id="l-h5-h6" x1="83%" y1="90" x2="67%" y2="90" class="line" />
+      <line id="l-h4-h5" x1="67%" y1="90" x2="51%" y2="90" class="line" />
+      <line id="l-h3-h4" x1="51%" y1="90" x2="35%" y2="90" class="line" />
+      <line id="l-h2-h3" x1="35%" y1="90" x2="19%" y2="90" class="line" />
+      <line id="l-h1-h2" x1="19%" y1="90" x2="3%" y2="90" class="line" />
+    </svg>
+
+    <div class="nodes-grid">
+      <!-- Step 1 -->
+      <div class="step-col">
+        <div class="node" id="h1">h₁<div class="step-label">t = 1</div></div>
+        <div class="word-token">"The"</div>
+        <div class="gauge-container">
+          <div class="gauge-fill" id="g1"></div>
+          <div class="gauge-text" id="gt1">0%</div>
+        </div>
+      </div>
+      <!-- Step 2 -->
+      <div class="step-col">
+        <div class="node" id="h2">h₂<div class="step-label">t = 2</div></div>
+        <div class="word-token">"keys"</div>
+        <div class="gauge-container">
+          <div class="gauge-fill" id="g2"></div>
+          <div class="gauge-text" id="gt2">0%</div>
+        </div>
+      </div>
+      <!-- Step 3 -->
+      <div class="step-col">
+        <div class="node" id="h3">h₃<div class="step-label">t = 3</div></div>
+        <div class="word-token">"on"</div>
+        <div class="gauge-container">
+          <div class="gauge-fill" id="g3"></div>
+          <div class="gauge-text" id="gt3">0%</div>
+        </div>
+      </div>
+      <!-- Step 4 -->
+      <div class="step-col">
+        <div class="node" id="h4">h₄<div class="step-label">t = 4</div></div>
+        <div class="word-token">"table"</div>
+        <div class="gauge-container">
+          <div class="gauge-fill" id="g4"></div>
+          <div class="gauge-text" id="gt4">0%</div>
+        </div>
+      </div>
+      <!-- Step 5 -->
+      <div class="step-col">
+        <div class="node" id="h5">h₅<div class="step-label">t = 5</div></div>
+        <div class="word-token">"..."</div>
+        <div class="gauge-container">
+          <div class="gauge-fill" id="g5"></div>
+          <div class="gauge-text" id="gt5">0%</div>
+        </div>
+      </div>
+      <!-- Step 6 -->
+      <div class="step-col">
+        <div class="node" id="h6">h₆<div class="step-label">t = 6 (Loss)</div></div>
+        <div class="word-token">"are"</div>
+        <div class="gauge-container">
+          <div class="gauge-fill" id="g6"></div>
+          <div class="gauge-text" id="gt6">0%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box" id="info-box">
+    Click <strong>Step Backward (BPTT)</strong> to observe how loss gradients propagate back through time.
+  </div>
+
+  <div class="controls">
+    <button class="btn-primary" onclick="stepBackward()">Step Backward (BPTT) ⇦</button>
+    <button onclick="runFull()">Run Full Backprop</button>
+    <button onclick="resetViz()">Reset</button>
+  </div>
+</div>
+
+<script>
+  let currentStep = 6;
+
+  function getColorForGradient(pct) {
+    if (pct > 60) return 'var(--grad-high)';
+    if (pct > 25) return 'var(--grad-mid)';
+    if (pct > 5) return 'var(--grad-low)';
+    return 'var(--grad-zero)';
+  }
+
+  function updateStep(stepNum, decayFactor) {
+    // Calculates exponent decay: factor^(6 - stepNum)
+    const distance = 6 - stepNum;
+    const gradientPct = Math.pow(decayFactor, distance) * 100;
+    
+    const node = document.getElementById(`h${stepNum}`);
+    const gauge = document.getElementById(`g${stepNum}`);
+    const gaugeText = document.getElementById(`gt${stepNum}`);
+    
+    const color = getColorForGradient(gradientPct);
+
+    // Glow effects & node styling
+    node.style.borderColor = color;
+    node.style.boxShadow = `0 0 16px ${color}`;
+    
+    // Gauge fill
+    gauge.style.height = `${gradientPct}%`;
+    gauge.style.backgroundColor = color;
+    gaugeText.innerText = `${gradientPct.toFixed(1)}%`;
+
+    // Connectors animation
+    if (stepNum < 6) {
+      const line = document.getElementById(`l-h${stepNum}-h${stepNum+1}`);
+      if (line) line.classList.add('active-bwd');
+    }
+  }
+
+  function stepBackward() {
+    const decayFactor = parseFloat(document.getElementById('decay-rate').value);
+
+    if (currentStep < 1) return;
+
+    updateStep(currentStep, decayFactor);
+
+    const distance = 6 - currentStep;
+    const currentPct = (Math.pow(decayFactor, distance) * 100).toFixed(1);
+
+    const box = document.getElementById('info-box');
+    if (currentStep === 6) {
+      box.innerHTML = `<strong>t = 6 (Output Loss):</strong> Initial Error Gradient starts at <strong>100%</strong>.`;
+    } else if (currentStep === 1) {
+      box.innerHTML = `<strong>t = 1 (Word 1 "The"):</strong> Gradient signal faded to <strong>${currentPct}%</strong>!<br/>` +
+                      `Because the gradient near $t=1$ is effectively 0, early weights receive zero updates. The model <strong>forgets</strong> earlier inputs!`;
+    } else {
+      box.innerHTML = `<strong>Step t = ${currentStep}:</strong> Gradient multiplied by weight factor (${decayFactor}) $\\rightarrow$ Signal reduced to <strong>${currentPct}%</strong>.`;
+    }
+
+    currentStep--;
+  }
+
+  function runFull() {
+    resetViz();
+    let interval = setInterval(() => {
+      if (currentStep < 1) {
+        clearInterval(interval);
+      } else {
+        stepBackward();
+      }
+    }, 400);
+  }
+
+  function resetViz() {
+    currentStep = 6;
+    for (let i = 1; i <= 6; i++) {
+      const node = document.getElementById(`h${i}`);
+      const gauge = document.getElementById(`g${i}`);
+      const gaugeText = document.getElementById(`gt${i}`);
+      
+      node.style.borderColor = 'var(--node-border)';
+      node.style.boxShadow = 'none';
+      
+      gauge.style.height = '0%';
+      gaugeText.innerText = '0%';
+    }
+
+    document.querySelectorAll('.line').forEach(l => l.classList.remove('active-bwd'));
+    document.getElementById('info-box').innerHTML = 'Click <strong>Step Backward (BPTT)</strong> to observe how loss gradients propagate back through time.';
+  }
+</script>
+</body>
+</html>
