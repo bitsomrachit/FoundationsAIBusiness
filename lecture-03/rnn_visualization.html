@@ -22,82 +22,84 @@
 
     * { box-sizing: border-box; }
 
-    body {
+    html, body {
+      height: 100vh;
+      max-height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
     }
 
     .container {
       background: var(--card-bg);
-      padding: 24px 32px;
-      border-radius: 20px;
+      padding: 10px 16px;
+      border-radius: 12px;
       border: 1px solid #1f2937;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-      max-width: 1080px;
-      width: 100%;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+      width: 98vw;
+      max-width: 1280px;
+      height: 98vh;
+      margin: 1vh auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     h2 {
-      margin: 0 0 4px 0;
+      margin: 0;
       text-align: center;
-      font-size: 1.6rem;
+      font-size: 1.25rem;
       letter-spacing: -0.02em;
     }
 
     .subtitle {
       text-align: center;
       color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 16px;
+      font-size: 0.75rem;
+      margin: 2px 0 6px 0;
     }
 
     .context-banner {
       background: rgba(251, 191, 36, 0.1);
       border: 1px solid var(--param-color);
       color: var(--param-color);
-      padding: 8px 14px;
-      border-radius: 8px;
+      padding: 4px 10px;
+      border-radius: 6px;
       text-align: center;
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       font-weight: 600;
-      margin-bottom: 20px;
+      margin-bottom: 8px;
     }
 
     /* Main Grid Layout */
     .main-grid {
       display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 920px) {
-      .main-grid { grid-template-columns: 1fr; }
+      grid-template-columns: 1.1fr 1fr;
+      gap: 12px;
+      flex: 1;
+      min-height: 0; /* Crucial for internal scrolling */
     }
 
     /* Visualization Canvas */
     .viz-card {
       background: #0d1322;
       border: 1px solid #1f2937;
-      border-radius: 14px;
-      padding: 16px;
+      border-radius: 10px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      justify-content: space-between;
+      min-height: 0;
     }
 
     .phase-label {
-      font-size: 0.72rem;
+      font-size: 0.65rem;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 3px 0;
     }
 
     .phase-label.enc { color: var(--enc-color); }
@@ -107,6 +109,9 @@
       position: relative;
       width: 100%;
     }
+
+    .encoder-canvas { height: 90px; }
+    .decoder-canvas { height: 180px; }
 
     svg.connections {
       position: absolute;
@@ -119,23 +124,23 @@
 
     .line {
       stroke: #1f2937;
-      stroke-width: 3;
+      stroke-width: 2.5;
       transition: all 0.4s ease;
     }
 
     .line.active-fwd {
       stroke: var(--fwd-color);
-      stroke-width: 4;
+      stroke-width: 3.5;
     }
 
     .line.active-enc {
       stroke: var(--enc-color);
-      stroke-width: 4;
+      stroke-width: 3.5;
     }
 
     .line.active-bwd {
       stroke: var(--bwd-color);
-      stroke-width: 4;
+      stroke-width: 3.5;
       stroke-dasharray: 6;
       animation: dash-reverse 0.8s linear infinite;
     }
@@ -164,9 +169,9 @@
     }
 
     .node {
-      width: 58px;
-      height: 54px;
-      border-radius: 12px;
+      width: 52px;
+      height: 36px;
+      border-radius: 8px;
       background: #0f172a;
       border: 2px solid var(--node-border);
       display: flex;
@@ -174,37 +179,38 @@
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       transition: all 0.35s ease;
       color: var(--text);
       text-align: center;
     }
 
     .node .sub {
-      font-size: 0.63rem;
+      font-size: 0.55rem;
       color: var(--text-muted);
       font-weight: normal;
+      line-height: 1;
     }
 
     /* Active Node Styles */
     .node.active-fwd {
       border-color: var(--fwd-color);
       background: rgba(56, 189, 248, 0.15);
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
       color: var(--fwd-color);
     }
 
     .node.active-enc {
       border-color: var(--enc-color);
       background: rgba(52, 211, 153, 0.15);
-      box-shadow: 0 0 16px rgba(52, 211, 153, 0.4);
+      box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
       color: var(--enc-color);
     }
 
     .node.active-bwd {
       border-color: var(--bwd-color);
       background: rgba(248, 113, 113, 0.2);
-      box-shadow: 0 0 16px rgba(248, 113, 113, 0.5);
+      box-shadow: 0 0 12px rgba(248, 113, 113, 0.5);
       color: var(--bwd-color);
     }
 
@@ -213,19 +219,19 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
-      padding: 4px 0;
+      gap: 1px;
+      margin: 2px 0;
     }
 
     .bridge-arrow {
-      font-size: 1.1rem;
+      font-size: 0.75rem;
       color: var(--param-color);
-      line-height: 1;
+      line-height: 0.8;
     }
 
     .node.context-node {
-      width: 84px;
-      height: 50px;
+      width: 100px;
+      height: 32px;
       border-color: var(--param-color);
       color: var(--param-color);
     }
@@ -234,7 +240,7 @@
     .node.context-node.active-fwd {
       border-color: var(--param-color);
       background: rgba(251, 191, 36, 0.18);
-      box-shadow: 0 0 18px rgba(251, 191, 36, 0.45);
+      box-shadow: 0 0 14px rgba(251, 191, 36, 0.45);
       color: var(--param-color);
     }
 
@@ -242,39 +248,39 @@
     .math-card {
       background: #0d1322;
       border: 1px solid #1f2937;
-      border-radius: 14px;
-      padding: 18px;
+      border-radius: 10px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
+      min-height: 0;
     }
 
     .math-card h3 {
-      margin: 0 0 10px 0;
-      font-size: 1.05rem;
+      margin: 0 0 8px 0;
+      font-size: 0.95rem;
       color: var(--math-color);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .math-content {
-      font-size: 0.88rem;
-      line-height: 1.6;
+      font-size: 0.8rem;
+      line-height: 1.45;
       background: #090d16;
-      padding: 14px;
-      border-radius: 10px;
+      padding: 10px;
+      border-radius: 8px;
       border: 1px solid #1e293b;
       flex-grow: 1;
       overflow-y: auto;
-      max-height: 520px;
     }
 
     .eq-highlight {
       background: rgba(167, 139, 250, 0.1);
       border-left: 3px solid var(--math-color);
-      padding: 6px 10px;
-      margin: 6px 0;
-      border-radius: 0 6px 6px 0;
+      padding: 4px 8px;
+      margin: 4px 0;
+      border-radius: 0 4px 4px 0;
     }
 
     .eq-enc {
@@ -287,36 +293,49 @@
       border-left: 3px solid var(--bwd-color);
     }
 
-    /* Controls */
+    /* Controls Bar */
     .controls {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr auto;
       gap: 10px;
-      justify-content: center;
-      margin-top: 20px;
-      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #1f2937;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .control-group-label {
-      width: 100%;
-      text-align: center;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin: 10px 0 2px 0;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
     }
 
     button {
       background: #1f2937;
       color: var(--text);
       border: 1px solid #374151;
-      padding: 10px 16px;
-      border-radius: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.72rem;
       cursor: pointer;
       transition: all 0.2s;
+      flex: 1;
+      white-space: nowrap;
     }
 
     button:hover { background: #374151; }
@@ -326,34 +345,41 @@
     button.btn-fwd:hover { background: rgba(56, 189, 248, 0.15); }
     button.btn-bwd { border-color: var(--bwd-color); color: var(--bwd-color); }
     button.btn-bwd:hover { background: rgba(248, 113, 113, 0.15); }
+    
+    .btn-reset {
+      border-color: var(--text-muted);
+      color: var(--text-muted);
+      align-self: flex-end;
+      height: 28px;
+      padding: 0 12px;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>RNN Machine Translation: Encoder-Decoder Calculus</h2>
-  <div class="subtitle">Forward Encoding, Decoding &amp; BPTT Gradient Flow for English &#8594; French Generation</div>
-
-  <div class="context-banner">
-    Encoder reads &ldquo;The keys are&rdquo; &#8594; Context Vector \(c\) &#8594; Decoder generates: \(\text{"Les"} \to \text{"cl\'es"} \to \text{"sont"}\)
+  <div>
+    <h2>RNN Machine Translation: Encoder-Decoder Calculus</h2>
+    <div class="subtitle">Forward Encoding, Decoding &amp; BPTT Gradient Flow for English &#8594; French Generation</div>
+    <div class="context-banner">
+      Encoder reads &ldquo;The keys are&rdquo; &#8594; Context Vector \(c\) &#8594; Decoder generates: \(\text{"Les"} \to \text{"cl\'es"} \to \text{"sont"}\)
+    </div>
   </div>
 
   <div class="main-grid">
     <!-- LEFT: Computation Graph -->
     <div class="viz-card">
 
-      <div class="phase-label enc">Encoder &mdash; reads English, builds understanding</div>
-      <div class="viz-canvas encoder-canvas" style="height:190px">
+      <div class="phase-label enc">Encoder &mdash; reads English</div>
+      <div class="viz-canvas encoder-canvas">
         <svg class="connections">
-          <!-- Step 1 Vertical -->
-          <line id="l-ex1-e1" x1="16%" y1="170" x2="16%" y2="40" class="line" />
-          <!-- Step 2 Vertical -->
-          <line id="l-ex2-e2" x1="50%" y1="170" x2="50%" y2="40" class="line" />
-          <!-- Step 3 Vertical -->
-          <line id="l-ex3-e3" x1="84%" y1="170" x2="84%" y2="40" class="line" />
+          <!-- Step Vertical Lines (percentage based for dynamic scaling) -->
+          <line id="l-ex1-e1" x1="16%" y1="80%" x2="16%" y2="20%" class="line" />
+          <line id="l-ex2-e2" x1="50%" y1="80%" x2="50%" y2="20%" class="line" />
+          <line id="l-ex3-e3" x1="84%" y1="80%" x2="84%" y2="20%" class="line" />
           <!-- Recurrent Horizontal Links -->
-          <line id="l-e1-e2" x1="16%" y1="40" x2="50%" y2="40" class="line" />
-          <line id="l-e2-e3" x1="50%" y1="40" x2="84%" y2="40" class="line" />
+          <line id="l-e1-e2" x1="16%" y1="20%" x2="50%" y2="20%" class="line" />
+          <line id="l-e2-e3" x1="50%" y1="20%" x2="84%" y2="20%" class="line" />
         </svg>
 
         <div class="nodes-grid">
@@ -373,32 +399,32 @@
       </div>
 
       <div class="context-bridge">
-        <div class="bridge-arrow">&#8595;&#8595;&#8595;</div>
-        <div class="node context-node" id="ctxNode">c<div class="sub">Context Vector = e&#8323;</div></div>
-        <div class="bridge-arrow">&#8595;&#8595;&#8595;</div>
+        <div class="bridge-arrow">&#8595;&#8595;</div>
+        <div class="node context-node" id="ctxNode">c<div class="sub">Context = e&#8323;</div></div>
+        <div class="bridge-arrow">&#8595;&#8595;</div>
       </div>
 
-      <div class="phase-label dec">Decoder &mdash; generates French, one word at a time</div>
-      <div class="viz-canvas decoder-canvas" style="height:330px">
+      <div class="phase-label dec">Decoder &mdash; generates French</div>
+      <div class="viz-canvas decoder-canvas">
         <svg class="connections">
           <!-- Step 1 Verticals -->
-          <line id="l-x1-s1" x1="16%" y1="280" x2="16%" y2="190" class="line" />
-          <line id="l-s1-y1" x1="16%" y1="190" x2="16%" y2="100" class="line" />
-          <line id="l-y1-L1" x1="16%" y1="100" x2="16%" y2="30"  class="line" />
+          <line id="l-x1-s1" x1="16%" y1="90%" x2="16%" y2="63%" class="line" />
+          <line id="l-s1-y1" x1="16%" y1="63%" x2="16%" y2="36%" class="line" />
+          <line id="l-y1-L1" x1="16%" y1="36%" x2="16%" y2="10%" class="line" />
 
           <!-- Step 2 Verticals -->
-          <line id="l-x2-s2" x1="50%" y1="280" x2="50%" y2="190" class="line" />
-          <line id="l-s2-y2" x1="50%" y1="190" x2="50%" y2="100" class="line" />
-          <line id="l-y2-L2" x1="50%" y1="100" x2="50%" y2="30"  class="line" />
+          <line id="l-x2-s2" x1="50%" y1="90%" x2="50%" y2="63%" class="line" />
+          <line id="l-s2-y2" x1="50%" y1="63%" x2="50%" y2="36%" class="line" />
+          <line id="l-y2-L2" x1="50%" y1="36%" x2="50%" y2="10%" class="line" />
 
           <!-- Step 3 Verticals -->
-          <line id="l-x3-s3" x1="84%" y1="280" x2="84%" y2="190" class="line" />
-          <line id="l-s3-y3" x1="84%" y1="190" x2="84%" y2="100" class="line" />
-          <line id="l-y3-L3" x1="84%" y1="100" x2="84%" y2="30"  class="line" />
+          <line id="l-x3-s3" x1="84%" y1="90%" x2="84%" y2="63%" class="line" />
+          <line id="l-s3-y3" x1="84%" y1="63%" x2="84%" y2="36%" class="line" />
+          <line id="l-y3-L3" x1="84%" y1="36%" x2="84%" y2="10%" class="line" />
 
           <!-- Recurrent Horizontal Links -->
-          <line id="l-s1-s2" x1="16%" y1="190" x2="50%" y2="190" class="line" />
-          <line id="l-s2-s3" x1="50%" y1="190" x2="84%" y2="190" class="line" />
+          <line id="l-s1-s2" x1="16%" y1="63%" x2="50%" y2="63%" class="line" />
+          <line id="l-s2-s3" x1="50%" y1="63%" x2="84%" y2="63%" class="line" />
         </svg>
 
         <div class="nodes-grid">
@@ -426,8 +452,8 @@
         </div>
       </div>
 
-      <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:4px;">
-        Shared Parameters: \(W_{ex}, W_{ee}\) (encoder) &nbsp;|&nbsp; \(W_{sx}, W_{ss}, W_c, W_{sy}\) (decoder)
+      <div style="font-size:0.68rem; color:var(--text-muted); text-align:center;">
+        Shared Weights: \(W_{ex}, W_{ee}\) (enc) &nbsp;|&nbsp; \(W_{sx}, W_{ss}, W_c, W_{sy}\) (dec)
       </div>
     </div>
 
@@ -435,28 +461,41 @@
     <div class="math-card">
       <h3>Formal Calculus Breakdown</h3>
       <div class="math-content" id="math-panel">
-        Select an encoder or decoder step below to view exact forward matrix multiplications or backpropagation chain-rule derivations for Machine Translation.
+        Select an encoder, decoder, or BPTT step below to view exact matrix equations and chain-rule derivations.
       </div>
     </div>
   </div>
 
   <div class="controls">
-    <div class="control-group-label">1. Encode (English &#8594; Context Vector)</div>
-    <button class="btn-enc" onclick="stepEncode(1)">Encode t=1 (&ldquo;The&rdquo;)</button>
-    <button class="btn-enc" onclick="stepEncode(2)">Encode t=2 (&ldquo;keys&rdquo;)</button>
-    <button class="btn-enc" onclick="stepEncode(3)">Encode t=3 (&ldquo;are&rdquo;) &#8594; c</button>
+    <div class="control-group">
+      <div class="control-group-label">1. Encode</div>
+      <div class="btn-row">
+        <button class="btn-enc" onclick="stepEncode(1)">t=1 ("The")</button>
+        <button class="btn-enc" onclick="stepEncode(2)">t=2 ("keys")</button>
+        <button class="btn-enc" onclick="stepEncode(3)">t=3 ("are") &#8594; c</button>
+      </div>
+    </div>
 
-    <div class="control-group-label">2. Decode (Context Vector &#8594; French)</div>
-    <button class="btn-fwd" onclick="stepForward(1)">Decode t=1 (&ldquo;Les&rdquo;)</button>
-    <button class="btn-fwd" onclick="stepForward(2)">Decode t=2 (&ldquo;cl&eacute;s&rdquo;)</button>
-    <button class="btn-fwd" onclick="stepForward(3)">Decode t=3 (&ldquo;sont&rdquo;)</button>
+    <div class="control-group">
+      <div class="control-group-label">2. Decode</div>
+      <div class="btn-row">
+        <button class="btn-fwd" onclick="stepForward(1)">t=1 ("Les")</button>
+        <button class="btn-fwd" onclick="stepForward(2)">t=2 ("clés")</button>
+        <button class="btn-fwd" onclick="stepForward(3)">t=3 ("sont")</button>
+      </div>
+    </div>
 
-    <div class="control-group-label">3. Backpropagate Through Time (Decoder &#8594; Encoder)</div>
-    <button class="btn-bwd" onclick="stepBPTT(3)">BPTT Step t=3</button>
-    <button class="btn-bwd" onclick="stepBPTT(2)">BPTT Step t=2</button>
-    <button class="btn-bwd" onclick="stepBPTT(1)">BPTT Step t=1</button>
-    <button class="btn-bwd" onclick="stepEncoderBackward()">Backprop into Encoder</button>
-    <button onclick="resetAll()">Reset</button>
+    <div class="control-group">
+      <div class="control-group-label">3. Backpropagate (BPTT)</div>
+      <div class="btn-row">
+        <button class="btn-bwd" onclick="stepBPTT(3)">BPTT t=3</button>
+        <button class="btn-bwd" onclick="stepBPTT(2)">BPTT t=2</button>
+        <button class="btn-bwd" onclick="stepBPTT(1)">BPTT t=1</button>
+        <button class="btn-bwd" onclick="stepEncoderBackward()">Enc BPTT</button>
+      </div>
+    </div>
+
+    <button class="btn-reset" onclick="resetAll()">Reset</button>
   </div>
 </div>
 
@@ -488,11 +527,6 @@
     }
   }
 
-  // ---------------------------------------------------------------
-  // PHASE 1: ENCODER — reads the source sentence, builds a hidden
-  // state step by step. No output/loss at this stage — the encoder's
-  // only job is to compress "The keys are" into a single vector.
-  // ---------------------------------------------------------------
   function stepEncode(t) {
     clearAll();
     if (t === 1) {
@@ -500,13 +534,12 @@
       setLines(['l-ex1-e1'], 'active-enc');
       updateMath(`
         <div class="eq-highlight eq-enc">
-          <strong>1. Encoder Hidden State Update (first word):</strong><br/>
+          <strong>1. Encoder Hidden State Update (t=1):</strong><br/>
           $$z_1 = W_{ex} x_1 + W_{ee} e_0 + b_e \\quad (x_1 = \\text{"The"},\\; e_0 = \\vec{0})$$
           $$e_1 = \\tanh(z_1)$$
         </div>
         <div class="eq-highlight eq-enc">
-          <strong>What just happened:</strong><br/>
-          The encoder has no output or loss yet &mdash; it is only building an internal summary of the sentence so far.
+          <strong>Note:</strong> Encoder builds context summaries without computing losses.
         </div>
       `);
     } else if (t === 2) {
@@ -514,13 +547,12 @@
       setLines(['l-ex1-e1', 'l-e1-e2', 'l-ex2-e2'], 'active-enc');
       updateMath(`
         <div class="eq-highlight eq-enc">
-          <strong>1. Encoder Hidden State Update (second word):</strong><br/>
+          <strong>1. Encoder Hidden State Update (t=2):</strong><br/>
           $$z_2 = W_{ex} x_2 + W_{ee} e_1 + b_e \\quad (x_2 = \\text{"keys"})$$
           $$e_2 = \\tanh(z_2)$$
         </div>
         <div class="eq-highlight eq-enc">
-          <strong>Same recurrence as before:</strong><br/>
-          \\(e_2\\) now carries information about both &ldquo;The&rdquo; and &ldquo;keys&rdquo;, folded into one vector.
+          \\(e_2\\) carries aggregated information for "The keys".
         </div>
       `);
     } else if (t === 3) {
@@ -528,26 +560,17 @@
       setLines(['l-ex1-e1', 'l-e1-e2', 'l-ex2-e2', 'l-e2-e3', 'l-ex3-e3'], 'active-enc');
       updateMath(`
         <div class="eq-highlight eq-enc">
-          <strong>1. Final Encoder Hidden State (last word):</strong><br/>
+          <strong>1. Final Encoder Hidden State (t=3):</strong><br/>
           $$z_3 = W_{ex} x_3 + W_{ee} e_2 + b_e \\quad (x_3 = \\text{"are"})$$
           $$e_3 = \\tanh(z_3)$$
         </div>
         <div class="eq-highlight eq-enc">
-          <strong>2. Freeze the Context Vector:</strong><br/>
-          $$c := e_3$$
-        </div>
-        <div class="eq-highlight">
-          <strong>Handoff to the decoder:</strong><br/>
-          The entire meaning of &ldquo;The keys are&rdquo; is now compressed into the single vector \\(c\\). Every decoder step below will read from this same \\(c\\).
+          <strong>2. Freeze Context Vector:</strong> $$c := e_3$$
         </div>
       `);
     }
   }
 
-  // ---------------------------------------------------------------
-  // PHASE 2: DECODER — generates the French sentence one token at a
-  // time, conditioned on the context vector c from the encoder.
-  // ---------------------------------------------------------------
   function stepForward(t) {
     clearAll();
     setNodes(['ctxNode'], 'active-fwd');
@@ -557,16 +580,11 @@
       updateMath(`
         <div class="eq-highlight">
           <strong>1. Decoder State Activation (Injecting Context \\(c\\)):</strong><br/>
-          $$z_1 = W_{sx} x_1 + W_{ss} s_0 + W_c c + b_s$$
-          $$s_1 = \\tanh(z_1) \\quad (x_1 = \\langle\\text{SOS}\\rangle)$$
+          $$z_1 = W_{sx} x_1 + W_{ss} s_0 + W_c c + b_s \\implies s_1 = \\tanh(z_1)$$
         </div>
         <div class="eq-highlight">
-          <strong>2. French Vocabulary Projection &amp; Softmax:</strong><br/>
-          $$o_1 = W_{sy} s_1 + b_y$$
-          $$\\hat{y}_1 = \\text{softmax}(o_1) \\implies P(\\text{"Les"} \\mid c, \\langle\\text{SOS}\\rangle)$$
-        </div>
-        <div class="eq-highlight">
-          <strong>3. Step Cross-Entropy Loss:</strong><br/>
+          <strong>2. Softmax & Loss:</strong><br/>
+          $$o_1 = W_{sy} s_1 + b_y, \\quad \\hat{y}_1 = \\text{softmax}(o_1)$$
           $$L_1 = -\\log \\hat{y}_{1,\\,\\text{Les}}$$
         </div>
       `);
@@ -575,14 +593,12 @@
       setLines(['l-x1-s1', 'l-s1-s2', 'l-x2-s2', 'l-s2-y2', 'l-y2-L2'], 'active-fwd');
       updateMath(`
         <div class="eq-highlight">
-          <strong>1. Recurrent State Update (Conditioned on \\(s_1\\) &amp; \\(c\\)):</strong><br/>
-          $$z_2 = W_{sx} x_2 + W_{ss} s_1 + W_c c + b_s \\quad (x_2 = \\text{"Les"})$$
-          $$s_2 = \\tanh(z_2)$$
+          <strong>1. Recurrent State Update (Conditioned on \\(s_1\\) & \\(c\\)):</strong><br/>
+          $$z_2 = W_{sx} x_2 + W_{ss} s_1 + W_c c + b_s \\implies s_2 = \\tanh(z_2)$$
         </div>
         <div class="eq-highlight">
-          <strong>2. Prediction &amp; Token Loss:</strong><br/>
-          $$o_2 = W_{sy} s_2 + b_y \\implies \\hat{y}_2 = \\text{softmax}(o_2)$$
-          $$L_2 = -\\log \\hat{y}_{2,\\,\\text{cl\\'es}}$$
+          <strong>2. Prediction & Token Loss:</strong><br/>
+          $$o_2 = W_{sy} s_2 + b_y \\implies L_2 = -\\log \\hat{y}_{2,\\,\\text{cl\'es}}$$
         </div>
       `);
     } else if (t === 3) {
@@ -590,9 +606,8 @@
       setLines(['l-x1-s1', 'l-s1-s2', 'l-x2-s2', 'l-s2-s3', 'l-x3-s3', 'l-s3-y3', 'l-y3-L3'], 'active-fwd');
       updateMath(`
         <div class="eq-highlight">
-          <strong>1. Recurrent State Update (Conditioned on \\(s_2\\) &amp; \\(c\\)):</strong><br/>
-          $$z_3 = W_{sx} x_3 + W_{ss} s_2 + W_c c + b_s \\quad (x_3 = \\text{"cl\\'es"})$$
-          $$s_3 = \\tanh(z_3)$$
+          <strong>1. Recurrent State Update (Conditioned on \\(s_2\\) & \\(c\\)):</strong><br/>
+          $$z_3 = W_{sx} x_3 + W_{ss} s_2 + W_c c + b_s \\implies s_3 = \\tanh(z_3)$$
         </div>
         <div class="eq-highlight">
           <strong>2. Sequence Cross-Entropy Loss:</strong><br/>
@@ -602,11 +617,6 @@
     }
   }
 
-  // ---------------------------------------------------------------
-  // PHASE 3: BACKPROPAGATION THROUGH TIME — gradients flow backward
-  // through the decoder first, then across the context bridge into
-  // the encoder.
-  // ---------------------------------------------------------------
   function stepBPTT(t) {
     clearAll();
     if (t === 3) {
@@ -614,16 +624,9 @@
       setLines(['l-y3-L3', 'l-s3-y3'], 'active-bwd');
       updateMath(`
         <div class="eq-highlight eq-bwd">
-          <strong>1. Output Vocab Error Gradient at t=3:</strong><br/>
-          $$\\delta_{o,3} = \\frac{\\partial L_3}{\\partial o_3} = \\hat{y}_3 - y_3$$
-        </div>
-        <div class="eq-highlight eq-bwd">
-          <strong>2. Gradient w.r.t Decoder State \\(s_3\\):</strong><br/>
-          $$\\delta_{s,3} = \\frac{\\partial L}{\\partial s_3} = W_{sy}^T \\delta_{o,3}$$
-        </div>
-        <div class="eq-highlight eq-bwd">
-          <strong>3. Gradient w.r.t Shared Context Matrix \\(W_c\\):</strong><br/>
-          $$\\frac{\\partial L_3}{\\partial W_c} = \\left(\\delta_{s,3} \\odot (1 - s_3^2)\\right) c^T$$
+          <strong>1. Output Vocab Gradient at t=3:</strong> $$\\delta_{o,3} = \\hat{y}_3 - y_3$$
+          <strong>2. Decoder State Gradient:</strong> $$\\delta_{s,3} = W_{sy}^T \\delta_{o,3}$$
+          <strong>3. Context Weight Gradient:</strong> $$\\frac{\\partial L_3}{\\partial W_c} = \\left(\\delta_{s,3} \\odot (1 - s_3^2)\\right) c^T$$
         </div>
       `);
     } else if (t === 2) {
@@ -632,11 +635,7 @@
       updateMath(`
         <div class="eq-highlight eq-bwd">
           <strong>1. Temporal Chain Rule Across Decoder (\\(s_3 \\to s_2\\)):</strong><br/>
-          $$\\frac{\\partial s_3}{\\partial s_2} = \\text{diag}(1 - s_3^2)\\, W_{ss}$$
-        </div>
-        <div class="eq-highlight eq-bwd">
-          <strong>2. Total Gradient w.r.t Decoder State \\(s_2\\):</strong><br/>
-          $$\\delta_{s,2} = \\underbrace{W_{sy}^T \\delta_{o,2}}_{\\text{Direct loss } L_2} + \\underbrace{W_{ss}^T\\left(\\delta_{s,3} \\odot (1 - s_3^2)\\right)}_{\\text{Recurrent flow from } t=3}$$
+          $$\\delta_{s,2} = W_{sy}^T \\delta_{o,2} + W_{ss}^T\\left(\\delta_{s,3} \\odot (1 - s_3^2)\\right)$$
         </div>
       `);
     } else if (t === 1) {
@@ -644,53 +643,29 @@
       setLines(['l-y3-L3', 'l-s3-y3', 'l-s2-s3', 'l-y2-L2', 'l-s2-y2', 'l-s1-s2', 'l-y1-L1', 'l-s1-y1', 'l-x1-s1'], 'active-bwd');
       updateMath(`
         <div class="eq-highlight eq-bwd">
-          <strong>1. Full Unrolled Backpropagation to Initial Decoder State \\(s_1\\):</strong><br/>
-          $$\\delta_{s,1} = W_{sy}^T \\delta_{o,1} + W_{ss}^T\\left(\\delta_{s,2} \\odot (1 - s_2^2)\\right)$$
-        </div>
-        <div class="eq-highlight eq-bwd">
-          <strong>2. Accumulated Gradient w.r.t Context Vector \\(c\\):</strong><br/>
+          <strong>1. Accumulated Gradient w.r.t Context Vector \\(c\\):</strong><br/>
           $$\\frac{\\partial L}{\\partial c} = \\sum_{t=1}^{3} W_c^T \\left(\\delta_{s,t} \\odot (1 - s_t^2)\\right)$$
-        </div>
-        <div class="eq-highlight">
-          <strong>All three decoder steps have now sent a gradient into \\(c\\).</strong><br/>
-          Click &ldquo;Backprop into Encoder&rdquo; to see where that gradient goes next.
         </div>
       `);
     }
   }
 
-  // ---------------------------------------------------------------
-  // PHASE 4: gradient crosses the context bridge back into the
-  // encoder, updating the weights that built c in the first place.
-  // ---------------------------------------------------------------
   function stepEncoderBackward() {
     clearAll();
     setNodes(['ctxNode', 'e3', 'e2', 'e1', 'ex3', 'ex2', 'ex1'], 'active-bwd');
     setLines(['l-e2-e3', 'l-e1-e2', 'l-ex1-e1', 'l-ex2-e2', 'l-ex3-e3'], 'active-bwd');
     updateMath(`
       <div class="eq-highlight eq-bwd">
-        <strong>1. Gradient Crosses the Context Bridge:</strong><br/>
-        $$\\delta_{e,3} = \\frac{\\partial L}{\\partial e_3} = \\frac{\\partial L}{\\partial c} \\quad (\\text{since } c = e_3)$$
-      </div>
-      <div class="eq-highlight eq-bwd">
-        <strong>2. Backpropagate Through the Encoder's Own Recurrence:</strong><br/>
-        $$\\delta_{e,2} = W_{ee}^T \\left(\\delta_{e,3} \\odot (1 - e_3^2)\\right)$$
-        $$\\delta_{e,1} = W_{ee}^T \\left(\\delta_{e,2} \\odot (1 - e_2^2)\\right)$$
-      </div>
-      <div class="eq-highlight eq-bwd">
-        <strong>3. Encoder Weight Gradients:</strong><br/>
-        $$\\frac{\\partial L}{\\partial W_{ex}} = \\sum_{t=1}^{3} \\left(\\delta_{e,t} \\odot (1 - e_t^2)\\right) x_t^T$$
-      </div>
-      <div class="eq-highlight">
-        <strong>The loop is closed:</strong><br/>
-        A translation error at decoder step \\(t{=}3\\) has now updated the very first encoder weights that read &ldquo;The&rdquo; &mdash; end-to-end training in one pass.
+        <strong>1. Gradient Across Context Bridge:</strong> $$\\delta_{e,3} = \\frac{\\partial L}{\\partial c}$$
+        <strong>2. Recurrent Encoder Backprop:</strong> $$\\delta_{e,2} = W_{ee}^T \\left(\\delta_{e,3} \\odot (1 - e_3^2)\\right)$$
+        <strong>3. Encoder Weight Gradient:</strong> $$\\frac{\\partial L}{\\partial W_{ex}} = \\sum_{t=1}^{3} \\left(\\delta_{e,t} \\odot (1 - e_t^2)\\right) x_t^T$$
       </div>
     `);
   }
 
   function resetAll() {
     clearAll();
-    updateMath("Select an encoder or decoder step below to view exact forward matrix multiplications or backpropagation chain-rule derivations for Machine Translation.");
+    updateMath("Select an encoder, decoder, or BPTT step below to view exact matrix equations and chain-rule derivations.");
   }
 </script>
 </body>
