@@ -3,13 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RNN Vanishing Gradient Visualizer</title>
+  <title>The Vanishing Gradient Problem: Sentiment RNN Visualizer</title>
+  <!-- MathJax for rendering latex formulas -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
   <style>
     :root {
       --bg: #0b0f19;
       --card-bg: #111827;
       --text: #f9fafb;
       --text-muted: #9ca3af;
+      --fwd-color: #38bdf8;    /* Cyan for Forward */
+      --math-color: #a78bfa;   /* Purple for Math */
       --grad-high: #ef4444;    /* Vibrant Red (100% Gradient) */
       --grad-mid: #f97316;     /* Orange */
       --grad-low: #eab308;     /* Yellow */
@@ -26,7 +30,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       min-height: 100vh;
       margin: 0;
       padding: 20px;
@@ -34,11 +37,11 @@
 
     .container {
       background: var(--card-bg);
-      padding: 28px 36px;
+      padding: 24px 32px;
       border-radius: 20px;
       border: 1px solid #1f2937;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-      max-width: 950px;
+      max-width: 1140px;
       width: 100%;
     }
 
@@ -52,19 +55,43 @@
     .subtitle {
       text-align: center;
       color: var(--text-muted);
-      font-size: 0.95rem;
-      margin-bottom: 24px;
+      font-size: 0.92rem;
+      margin-bottom: 16px;
+    }
+
+    .task-banner {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--fwd-color);
+      color: var(--fwd-color);
+      padding: 8px 14px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 980px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
     }
 
     /* Visualization Canvas */
     .viz-canvas {
       position: relative;
-      height: 320px;
+      height: 300px;
       width: 100%;
-      margin: 10px 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      margin: 6px 0;
     }
 
     svg.connections {
@@ -80,6 +107,11 @@
       stroke: #1f2937;
       stroke-width: 3;
       transition: all 0.4s ease;
+    }
+
+    .line.active-fwd {
+      stroke: var(--fwd-color);
+      stroke-width: 4;
     }
 
     .line.active-bwd {
@@ -98,21 +130,21 @@
       z-index: 2;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       width: 100%;
-      padding: 0 10px;
+      padding: 30px 4px 0 4px;
     }
 
     .step-col {
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: 110px;
+      width: 92px;
     }
 
     .node {
-      width: 60px;
-      height: 60px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       background: #0f172a;
       border: 3px solid var(--node-border);
@@ -121,32 +153,39 @@
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       transition: all 0.4s ease;
       color: var(--text);
     }
 
+    .node.output-node {
+      width: 64px;
+      height: 64px;
+      border-width: 3px;
+    }
+
     .node .step-label {
-      font-size: 0.7rem;
+      font-size: 0.62rem;
       color: var(--text-muted);
       font-weight: normal;
     }
 
     .word-token {
-      margin-top: 8px;
-      font-size: 0.8rem;
-      color: #38bdf8;
+      margin-top: 6px;
+      font-size: 0.76rem;
+      color: var(--fwd-color);
       font-weight: 600;
+      text-align: center;
     }
 
     /* Bar Gauge for Gradient Magnitude */
     .gauge-container {
-      width: 50px;
-      height: 80px;
+      width: 44px;
+      height: 68px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid #1f2937;
       border-radius: 6px;
-      margin-top: 14px;
+      margin-top: 10px;
       display: flex;
       flex-direction: column-reverse;
       overflow: hidden;
@@ -165,7 +204,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       font-weight: bold;
       color: var(--text);
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);
@@ -177,7 +216,7 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      margin-bottom: 20px;
+      margin: 8px 0 16px 0;
       background: rgba(255,255,255,0.02);
       padding: 10px;
       border-radius: 10px;
@@ -185,7 +224,7 @@
     }
 
     .multiplier-select label {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
     }
 
@@ -199,135 +238,160 @@
       cursor: pointer;
     }
 
-    .info-box {
-      background: #0d1527;
-      border-left: 4px solid var(--grad-high);
-      padding: 16px 20px;
-      border-radius: 0 12px 12px 0;
-      margin: 16px 0 24px 0;
-      min-height: 55px;
-      font-size: 0.92rem;
-      line-height: 1.5;
-    }
-
     .controls {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
     }
 
     button {
       background: #1f2937;
       color: var(--text);
       border: 1px solid #374151;
-      padding: 12px 22px;
+      padding: 11px 18px;
       border-radius: 10px;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
       transition: all 0.2s;
     }
 
     button:hover { background: #374151; }
+    button.btn-fwd { border-color: var(--fwd-color); color: var(--fwd-color); }
+    button.btn-fwd:hover { background: rgba(56, 189, 248, 0.15); }
     button.btn-primary { border-color: var(--grad-high); color: var(--grad-high); }
     button.btn-primary:hover { background: rgba(239, 68, 68, 0.15); }
+
+    /* Math Panel */
+    .math-card {
+      background: #0d1322;
+      border: 1px solid #1f2937;
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .math-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.02rem;
+      color: var(--math-color);
+    }
+
+    .math-content {
+      font-size: 0.86rem;
+      line-height: 1.6;
+      background: #090d16;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      flex-grow: 1;
+      min-height: 260px;
+      overflow-y: auto;
+    }
+
+    .eq-highlight {
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 3px solid var(--fwd-color);
+      padding: 6px 10px;
+      margin: 6px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .eq-bwd {
+      background: rgba(239, 68, 68, 0.08);
+      border-left: 3px solid var(--grad-high);
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
   <h2>The Vanishing Gradient Problem</h2>
-  <div class="subtitle">Watch gradients exponential decay during Backpropagation Through Time (BPTT)</div>
+  <div class="subtitle">Sequence in, single output out &mdash; watch the gradient decay as it travels back through time</div>
 
-  <div class="multiplier-select">
-    <label for="decay-rate">Chain Rule Multiplier ($\sigma'(z) \cdot W$):</label>
-    <select id="decay-rate" onchange="resetViz()">
-      <option value="0.4">0.40 (Severe Vanishing - Standard RNN)</option>
-      <option value="0.7">0.70 (Moderate Decay)</option>
-      <option value="1.0">1.00 (Ideal Gradient Flow - LSTM / Gate Target)</option>
-    </select>
+  <div class="task-banner">
+    Task: read a product review word by word, output one label &mdash; Positive or Negative
   </div>
 
-  <div class="viz-canvas">
-    <svg class="connections">
-      <line id="l-h5-h6" x1="83%" y1="90" x2="67%" y2="90" class="line" />
-      <line id="l-h4-h5" x1="67%" y1="90" x2="51%" y2="90" class="line" />
-      <line id="l-h3-h4" x1="51%" y1="90" x2="35%" y2="90" class="line" />
-      <line id="l-h2-h3" x1="35%" y1="90" x2="19%" y2="90" class="line" />
-      <line id="l-h1-h2" x1="19%" y1="90" x2="3%" y2="90" class="line" />
-    </svg>
+  <div class="main-grid">
+    <div class="left-panel">
 
-    <div class="nodes-grid">
-      <!-- Step 1 -->
-      <div class="step-col">
-        <div class="node" id="h1">h₁<div class="step-label">t = 1</div></div>
-        <div class="word-token">"The"</div>
-        <div class="gauge-container">
-          <div class="gauge-fill" id="g1"></div>
-          <div class="gauge-text" id="gt1">0%</div>
+      <div class="viz-canvas">
+        <svg class="connections">
+          <line id="l-h1-h2" x1="10%" y1="55" x2="26%" y2="55" class="line" />
+          <line id="l-h2-h3" x1="26%" y1="55" x2="42%" y2="55" class="line" />
+          <line id="l-h3-h4" x1="42%" y1="55" x2="58%" y2="55" class="line" />
+          <line id="l-h4-h5" x1="58%" y1="55" x2="74%" y2="55" class="line" />
+          <line id="l-h5-h6" x1="74%" y1="55" x2="90%" y2="55" class="line" />
+        </svg>
+
+        <div class="nodes-grid">
+          <div class="step-col">
+            <div class="node" id="h1">h&#8321;<div class="step-label">t=1</div></div>
+            <div class="word-token">&ldquo;This&rdquo;</div>
+            <div class="gauge-container"><div class="gauge-fill" id="g1"></div><div class="gauge-text" id="gt1">0%</div></div>
+          </div>
+          <div class="step-col">
+            <div class="node" id="h2">h&#8322;<div class="step-label">t=2</div></div>
+            <div class="word-token">&ldquo;product&rdquo;</div>
+            <div class="gauge-container"><div class="gauge-fill" id="g2"></div><div class="gauge-text" id="gt2">0%</div></div>
+          </div>
+          <div class="step-col">
+            <div class="node" id="h3">h&#8323;<div class="step-label">t=3</div></div>
+            <div class="word-token">&ldquo;broke&rdquo;</div>
+            <div class="gauge-container"><div class="gauge-fill" id="g3"></div><div class="gauge-text" id="gt3">0%</div></div>
+          </div>
+          <div class="step-col">
+            <div class="node" id="h4">h&#8324;<div class="step-label">t=4</div></div>
+            <div class="word-token">&ldquo;after&rdquo;</div>
+            <div class="gauge-container"><div class="gauge-fill" id="g4"></div><div class="gauge-text" id="gt4">0%</div></div>
+          </div>
+          <div class="step-col">
+            <div class="node" id="h5">h&#8325;<div class="step-label">t=5</div></div>
+            <div class="word-token">&ldquo;one&rdquo;</div>
+            <div class="gauge-container"><div class="gauge-fill" id="g5"></div><div class="gauge-text" id="gt5">0%</div></div>
+          </div>
+          <div class="step-col">
+            <div class="node output-node" id="h6">h&#8326;<div class="step-label">t=6, &#375;, L</div></div>
+            <div class="word-token">&ldquo;use&rdquo;</div>
+            <div class="gauge-container"><div class="gauge-fill" id="g6"></div><div class="gauge-text" id="gt6">0%</div></div>
+          </div>
         </div>
       </div>
-      <!-- Step 2 -->
-      <div class="step-col">
-        <div class="node" id="h2">h₂<div class="step-label">t = 2</div></div>
-        <div class="word-token">"keys"</div>
-        <div class="gauge-container">
-          <div class="gauge-fill" id="g2"></div>
-          <div class="gauge-text" id="gt2">0%</div>
-        </div>
+
+      <div class="multiplier-select">
+        <label for="decay-rate">Chain rule multiplier per step \((\sigma'(z)\cdot W)\):</label>
+        <select id="decay-rate" onchange="resetViz()">
+          <option value="0.4">0.40 &mdash; Severe vanishing (plain RNN)</option>
+          <option value="0.7">0.70 &mdash; Moderate decay</option>
+          <option value="1.0">1.00 &mdash; Ideal flow (LSTM / gated target)</option>
+        </select>
       </div>
-      <!-- Step 3 -->
-      <div class="step-col">
-        <div class="node" id="h3">h₃<div class="step-label">t = 3</div></div>
-        <div class="word-token">"on"</div>
-        <div class="gauge-container">
-          <div class="gauge-fill" id="g3"></div>
-          <div class="gauge-text" id="gt3">0%</div>
-        </div>
-      </div>
-      <!-- Step 4 -->
-      <div class="step-col">
-        <div class="node" id="h4">h₄<div class="step-label">t = 4</div></div>
-        <div class="word-token">"table"</div>
-        <div class="gauge-container">
-          <div class="gauge-fill" id="g4"></div>
-          <div class="gauge-text" id="gt4">0%</div>
-        </div>
-      </div>
-      <!-- Step 5 -->
-      <div class="step-col">
-        <div class="node" id="h5">h₅<div class="step-label">t = 5</div></div>
-        <div class="word-token">"..."</div>
-        <div class="gauge-container">
-          <div class="gauge-fill" id="g5"></div>
-          <div class="gauge-text" id="gt5">0%</div>
-        </div>
-      </div>
-      <!-- Step 6 -->
-      <div class="step-col">
-        <div class="node" id="h6">h₆<div class="step-label">t = 6 (Loss)</div></div>
-        <div class="word-token">"are"</div>
-        <div class="gauge-container">
-          <div class="gauge-fill" id="g6"></div>
-          <div class="gauge-text" id="gt6">0%</div>
-        </div>
+
+      <div class="controls">
+        <button class="btn-fwd" onclick="runForward()">1. Run Forward Pass &#8594;</button>
+        <button class="btn-primary" onclick="stepBackward()">2. Step Backward (BPTT) &#8656;</button>
+        <button onclick="runFullBackward()">Run Full Backward</button>
+        <button onclick="resetViz()">Reset</button>
       </div>
     </div>
-  </div>
 
-  <div class="info-box" id="info-box">
-    Click <strong>Step Backward (BPTT)</strong> to observe how loss gradients propagate back through time.
-  </div>
-
-  <div class="controls">
-    <button class="btn-primary" onclick="stepBackward()">Step Backward (BPTT) ⇦</button>
-    <button onclick="runFull()">Run Full Backprop</button>
-    <button onclick="resetViz()">Reset</button>
+    <div class="math-card">
+      <h3>Formal Calculus Breakdown</h3>
+      <div class="math-content" id="math-panel">
+        Run the forward pass first &mdash; the RNN has to read the whole review and make a prediction before there's any error to send backward.
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
+  const words = ['This', 'product', 'broke', 'after', 'one', 'use'];
   let currentStep = 6;
+  let forwardDone = false;
 
   function getColorForGradient(pct) {
     if (pct > 60) return 'var(--grad-high)';
@@ -336,84 +400,134 @@
     return 'var(--grad-zero)';
   }
 
+  function updateMath(html) {
+    const panel = document.getElementById('math-panel');
+    panel.innerHTML = html;
+    if (window.MathJax) MathJax.typesetPromise([panel]);
+  }
+
+  // ---------------------------------------------------------------
+  // FORWARD PASS: read the review one word at a time, build up a
+  // hidden state, then make ONE prediction at the very end.
+  // ---------------------------------------------------------------
+  function runForward() {
+    document.querySelectorAll('.node').forEach(n => {
+      n.style.borderColor = 'var(--fwd-color)';
+      n.style.boxShadow = '0 0 12px var(--fwd-color)';
+    });
+    document.querySelectorAll('.line').forEach(l => l.classList.add('active-fwd'));
+    forwardDone = true;
+
+    updateMath(`
+      <div class="eq-highlight">
+        <strong>1. Recurrence, repeated for every word \\(t = 1 \\ldots 6\\):</strong><br/>
+        $$h_t = \\tanh(W_{xh} x_t + W_{hh} h_{t-1} + b_h)$$
+        <span style="color:var(--text-muted); font-size:0.8rem;">Same weights \\(W_{xh}, W_{hh}\\) reused at every step &mdash; only \\(h_t\\) changes.</span>
+      </div>
+      <div class="eq-highlight">
+        <strong>2. Single Prediction, only after the last word:</strong><br/>
+        $$\\hat{y} = \\sigma(W_{hy}\\, h_6 + b_y) \\quad \\text{(Positive vs. Negative)}$$
+      </div>
+      <div class="eq-highlight">
+        <strong>3. One loss, at the very end:</strong><br/>
+        $$L = -\\big[y\\log\\hat{y} + (1-y)\\log(1-\\hat{y})\\big]$$
+      </div>
+      <div class="eq-highlight" style="border-left-color: var(--grad-high); background: rgba(239,68,68,0.08);">
+        <strong>The key contrast with translation:</strong> there is only <strong>one</strong> loss, at \\(t{=}6\\). Every earlier word (&ldquo;This&rdquo;, &ldquo;product&rdquo;&hellip;) is only ever judged indirectly, through however much of its signal survives inside \\(h_6\\).
+      </div>
+    `);
+  }
+
+  // ---------------------------------------------------------------
+  // BACKWARD PASS: the one gradient at t=6 has to travel all the
+  // way back to t=1, shrinking at every step it crosses.
+  // ---------------------------------------------------------------
   function updateStep(stepNum, decayFactor) {
-    // Calculates exponent decay: factor^(6 - stepNum)
     const distance = 6 - stepNum;
     const gradientPct = Math.pow(decayFactor, distance) * 100;
-    
+
     const node = document.getElementById(`h${stepNum}`);
     const gauge = document.getElementById(`g${stepNum}`);
     const gaugeText = document.getElementById(`gt${stepNum}`);
-    
     const color = getColorForGradient(gradientPct);
 
-    // Glow effects & node styling
     node.style.borderColor = color;
     node.style.boxShadow = `0 0 16px ${color}`;
-    
-    // Gauge fill
     gauge.style.height = `${gradientPct}%`;
     gauge.style.backgroundColor = color;
     gaugeText.innerText = `${gradientPct.toFixed(1)}%`;
 
-    // Connectors animation
     if (stepNum < 6) {
       const line = document.getElementById(`l-h${stepNum}-h${stepNum+1}`);
-      if (line) line.classList.add('active-bwd');
+      if (line) { line.classList.remove('active-fwd'); line.classList.add('active-bwd'); }
     }
   }
 
   function stepBackward() {
+    if (!forwardDone) { runForward(); }
     const decayFactor = parseFloat(document.getElementById('decay-rate').value);
-
     if (currentStep < 1) return;
 
     updateStep(currentStep, decayFactor);
-
     const distance = 6 - currentStep;
-    const currentPct = (Math.pow(decayFactor, distance) * 100).toFixed(1);
+    const pct = (Math.pow(decayFactor, distance) * 100).toFixed(1);
 
-    const box = document.getElementById('info-box');
     if (currentStep === 6) {
-      box.innerHTML = `<strong>t = 6 (Output Loss):</strong> Initial Error Gradient starts at <strong>100%</strong>.`;
+      updateMath(`
+        <div class="eq-highlight eq-bwd">
+          <strong>1. Gradient at the only loss, \\(t{=}6\\):</strong><br/>
+          $$\\delta_6 = \\frac{\\partial L}{\\partial h_6} = (\\hat{y} - y)\\, W_{hy}$$
+          <span style="color:var(--text-muted); font-size:0.8rem;">This is the strongest the signal will ever be: <strong>100%</strong>.</span>
+        </div>
+      `);
     } else if (currentStep === 1) {
-      box.innerHTML = `<strong>t = 1 (Word 1 "The"):</strong> Gradient signal faded to <strong>${currentPct}%</strong>!<br/>` +
-                      `Because the gradient near $t=1$ is effectively 0, early weights receive zero updates. The model <strong>forgets</strong> earlier inputs!`;
+      updateMath(`
+        <div class="eq-highlight eq-bwd">
+          <strong>Gradient reaching word 1, &ldquo;This&rdquo;:</strong><br/>
+          $$\\delta_1 = \\delta_6 \\cdot (\\sigma'(z)\\cdot W_{hh})^{5} \\approx ${pct}\\%\\ \\text{of the original signal}$$
+        </div>
+        <div class="eq-highlight" style="border-left-color: var(--grad-high); background: rgba(239,68,68,0.08);">
+          <strong>The consequence:</strong> \\(\\dfrac{\\partial L}{\\partial W_{xh}}\\) at \\(t{=}1\\) is now essentially zero. The word that opened the review never gets a meaningful weight update &mdash; the network effectively <strong>forgets it ever read &ldquo;This.&rdquo;</strong>
+        </div>
+      `);
     } else {
-      box.innerHTML = `<strong>Step t = ${currentStep}:</strong> Gradient multiplied by weight factor (${decayFactor}) $\\rightarrow$ Signal reduced to <strong>${currentPct}%</strong>.`;
+      updateMath(`
+        <div class="eq-highlight eq-bwd">
+          <strong>Chain rule, one more step back (\\(t{=}${currentStep+1} \\to t{=}${currentStep}\\)):</strong><br/>
+          $$\\delta_{${currentStep}} = \\delta_{${currentStep+1}} \\odot (1 - h_{${currentStep+1}}^2) \\cdot W_{hh}$$
+          $$\\text{Signal remaining} \\approx ${pct}\\%$$
+        </div>
+        <span style="color:var(--text-muted); font-size:0.8rem;">Every crossing multiplies by the same factor (${decayFactor}) &mdash; that's exponential decay, not linear.</span>
+      `);
     }
 
     currentStep--;
   }
 
-  function runFull() {
+  function runFullBackward() {
     resetViz();
+    runForward();
     let interval = setInterval(() => {
-      if (currentStep < 1) {
-        clearInterval(interval);
-      } else {
-        stepBackward();
-      }
-    }, 400);
+      if (currentStep < 1) { clearInterval(interval); }
+      else { stepBackward(); }
+    }, 500);
   }
 
   function resetViz() {
     currentStep = 6;
+    forwardDone = false;
     for (let i = 1; i <= 6; i++) {
       const node = document.getElementById(`h${i}`);
-      const gauge = document.getElementById(`g${i}`);
-      const gaugeText = document.getElementById(`gt${i}`);
-      
       node.style.borderColor = 'var(--node-border)';
       node.style.boxShadow = 'none';
-      
-      gauge.style.height = '0%';
-      gaugeText.innerText = '0%';
+      document.getElementById(`g${i}`).style.height = '0%';
+      document.getElementById(`gt${i}`).innerText = '0%';
     }
-
-    document.querySelectorAll('.line').forEach(l => l.classList.remove('active-bwd'));
-    document.getElementById('info-box').innerHTML = 'Click <strong>Step Backward (BPTT)</strong> to observe how loss gradients propagate back through time.';
+    document.querySelectorAll('.line').forEach(l => l.classList.remove('active-fwd', 'active-bwd'));
+    updateMath('Run the forward pass first &mdash; the RNN has to read the whole review and make a prediction before there\'s any error to send backward.');
   }
+
+  resetViz();
 </script>
 </body>
 </html>
