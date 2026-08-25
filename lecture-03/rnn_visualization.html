@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>English-to-French RNN Translation: Rigorous Calculus Visualizer</title>
+  <title>English-to-French RNN Translation: Encoder-Decoder Calculus Visualizer</title>
   <!-- MathJax for rendering latex formulas -->
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
   <style>
@@ -16,6 +16,7 @@
       --math-color: #a78bfa;  /* Purple for Math */
       --bwd-color: #f87171;   /* Coral/Red for Gradients */
       --param-color: #fbbf24; /* Amber for Context/Weights */
+      --enc-color: #34d399;   /* Emerald for Encoder phase */
       --node-border: #374151;
     }
 
@@ -72,7 +73,7 @@
     /* Main Grid Layout */
     .main-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.15fr 1fr;
       gap: 20px;
     }
 
@@ -86,15 +87,24 @@
       border: 1px solid #1f2937;
       border-radius: 14px;
       padding: 16px;
-      position: relative;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 6px;
     }
+
+    .phase-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 0;
+    }
+
+    .phase-label.enc { color: var(--enc-color); }
+    .phase-label.dec { color: var(--fwd-color); }
 
     .viz-canvas {
       position: relative;
-      height: 330px;
       width: 100%;
     }
 
@@ -115,6 +125,11 @@
 
     .line.active-fwd {
       stroke: var(--fwd-color);
+      stroke-width: 4;
+    }
+
+    .line.active-enc {
+      stroke: var(--enc-color);
       stroke-width: 4;
     }
 
@@ -166,7 +181,7 @@
     }
 
     .node .sub {
-      font-size: 0.65rem;
+      font-size: 0.63rem;
       color: var(--text-muted);
       font-weight: normal;
     }
@@ -179,11 +194,48 @@
       color: var(--fwd-color);
     }
 
+    .node.active-enc {
+      border-color: var(--enc-color);
+      background: rgba(52, 211, 153, 0.15);
+      box-shadow: 0 0 16px rgba(52, 211, 153, 0.4);
+      color: var(--enc-color);
+    }
+
     .node.active-bwd {
       border-color: var(--bwd-color);
       background: rgba(248, 113, 113, 0.2);
       box-shadow: 0 0 16px rgba(248, 113, 113, 0.5);
       color: var(--bwd-color);
+    }
+
+    /* Context bridge between encoder and decoder */
+    .context-bridge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 0;
+    }
+
+    .bridge-arrow {
+      font-size: 1.1rem;
+      color: var(--param-color);
+      line-height: 1;
+    }
+
+    .node.context-node {
+      width: 84px;
+      height: 50px;
+      border-color: var(--param-color);
+      color: var(--param-color);
+    }
+
+    .node.context-node.active-enc,
+    .node.context-node.active-fwd {
+      border-color: var(--param-color);
+      background: rgba(251, 191, 36, 0.18);
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.45);
+      color: var(--param-color);
     }
 
     /* Mathematics Panel */
@@ -214,6 +266,7 @@
       border: 1px solid #1e293b;
       flex-grow: 1;
       overflow-y: auto;
+      max-height: 520px;
     }
 
     .eq-highlight {
@@ -222,6 +275,11 @@
       padding: 6px 10px;
       margin: 6px 0;
       border-radius: 0 6px 6px 0;
+    }
+
+    .eq-enc {
+      background: rgba(52, 211, 153, 0.1);
+      border-left: 3px solid var(--enc-color);
     }
 
     .eq-bwd {
@@ -238,6 +296,17 @@
       flex-wrap: wrap;
     }
 
+    .control-group-label {
+      width: 100%;
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 10px 0 2px 0;
+    }
+
     button {
       background: #1f2937;
       color: var(--text);
@@ -251,6 +320,8 @@
     }
 
     button:hover { background: #374151; }
+    button.btn-enc { border-color: var(--enc-color); color: var(--enc-color); }
+    button.btn-enc:hover { background: rgba(52, 211, 153, 0.15); }
     button.btn-fwd { border-color: var(--fwd-color); color: var(--fwd-color); }
     button.btn-fwd:hover { background: rgba(56, 189, 248, 0.15); }
     button.btn-bwd { border-color: var(--bwd-color); color: var(--bwd-color); }
@@ -260,17 +331,55 @@
 <body>
 
 <div class="container">
-  <h2>RNN Machine Translation: Rigorous Decoder Calculus</h2>
-  <div class="subtitle">Forward Recurrence & BPTT Gradient Flow for English ➔ French Generation</div>
+  <h2>RNN Machine Translation: Encoder-Decoder Calculus</h2>
+  <div class="subtitle">Forward Encoding, Decoding &amp; BPTT Gradient Flow for English &#8594; French Generation</div>
 
   <div class="context-banner">
-    Source Context Vector \(c = \text{Encoder}(\text{"The keys are"})\) | Target Generation: \(\text{"Les"} \to \text{"clés"} \to \text{"sont"}\)
+    Encoder reads &ldquo;The keys are&rdquo; &#8594; Context Vector \(c\) &#8594; Decoder generates: \(\text{"Les"} \to \text{"cl\'es"} \to \text{"sont"}\)
   </div>
 
   <div class="main-grid">
     <!-- LEFT: Computation Graph -->
     <div class="viz-card">
-      <div class="viz-canvas">
+
+      <div class="phase-label enc">Encoder &mdash; reads English, builds understanding</div>
+      <div class="viz-canvas encoder-canvas" style="height:190px">
+        <svg class="connections">
+          <!-- Step 1 Vertical -->
+          <line id="l-ex1-e1" x1="16%" y1="170" x2="16%" y2="40" class="line" />
+          <!-- Step 2 Vertical -->
+          <line id="l-ex2-e2" x1="50%" y1="170" x2="50%" y2="40" class="line" />
+          <!-- Step 3 Vertical -->
+          <line id="l-ex3-e3" x1="84%" y1="170" x2="84%" y2="40" class="line" />
+          <!-- Recurrent Horizontal Links -->
+          <line id="l-e1-e2" x1="16%" y1="40" x2="50%" y2="40" class="line" />
+          <line id="l-e2-e3" x1="50%" y1="40" x2="84%" y2="40" class="line" />
+        </svg>
+
+        <div class="nodes-grid">
+          <div class="step-col">
+            <div class="node" id="e1">e&#8321;<div class="sub">Enc State</div></div>
+            <div class="node" id="ex1">x&#8321;<div class="sub">&ldquo;The&rdquo;</div></div>
+          </div>
+          <div class="step-col">
+            <div class="node" id="e2">e&#8322;<div class="sub">Enc State</div></div>
+            <div class="node" id="ex2">x&#8322;<div class="sub">&ldquo;keys&rdquo;</div></div>
+          </div>
+          <div class="step-col">
+            <div class="node" id="e3">e&#8323;<div class="sub">Enc State</div></div>
+            <div class="node" id="ex3">x&#8323;<div class="sub">&ldquo;are&rdquo;</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="context-bridge">
+        <div class="bridge-arrow">&#8595;&#8595;&#8595;</div>
+        <div class="node context-node" id="ctxNode">c<div class="sub">Context Vector = e&#8323;</div></div>
+        <div class="bridge-arrow">&#8595;&#8595;&#8595;</div>
+      </div>
+
+      <div class="phase-label dec">Decoder &mdash; generates French, one word at a time</div>
+      <div class="viz-canvas decoder-canvas" style="height:330px">
         <svg class="connections">
           <!-- Step 1 Verticals -->
           <line id="l-x1-s1" x1="16%" y1="280" x2="16%" y2="190" class="line" />
@@ -295,69 +404,79 @@
         <div class="nodes-grid">
           <!-- Step 1 -->
           <div class="step-col">
-            <div class="node" id="L1">L₁<div class="sub">Loss</div></div>
-            <div class="node" id="y1">ŷ₁<div class="sub">"Les"</div></div>
-            <div class="node" id="s1">s₁<div class="sub">Dec State</div></div>
-            <div class="node" id="x1">x₁<div class="sub">&lt;SOS&gt;</div></div>
+            <div class="node" id="L1">L&#8321;<div class="sub">Loss</div></div>
+            <div class="node" id="y1">&#375;&#8321;<div class="sub">&ldquo;Les&rdquo;</div></div>
+            <div class="node" id="s1">s&#8321;<div class="sub">Dec State</div></div>
+            <div class="node" id="x1">x&#8321;<div class="sub">&lt;SOS&gt;</div></div>
           </div>
           <!-- Step 2 -->
           <div class="step-col">
-            <div class="node" id="L2">L₂<div class="sub">Loss</div></div>
-            <div class="node" id="y2">ŷ₂<div class="sub">"clés"</div></div>
-            <div class="node" id="s2">s₂<div class="sub">Dec State</div></div>
-            <div class="node" id="x2">x₂<div class="sub">"Les"</div></div>
+            <div class="node" id="L2">L&#8322;<div class="sub">Loss</div></div>
+            <div class="node" id="y2">&#375;&#8322;<div class="sub">&ldquo;cl&eacute;s&rdquo;</div></div>
+            <div class="node" id="s2">s&#8322;<div class="sub">Dec State</div></div>
+            <div class="node" id="x2">x&#8322;<div class="sub">&ldquo;Les&rdquo;</div></div>
           </div>
           <!-- Step 3 -->
           <div class="step-col">
-            <div class="node" id="L3">L₃<div class="sub">Loss</div></div>
-            <div class="node" id="y3">ŷ₃<div class="sub">"sont"</div></div>
-            <div class="node" id="s3">s₃<div class="sub">Dec State</div></div>
-            <div class="node" id="x3">x₃<div class="sub">"clés"</div></div>
+            <div class="node" id="L3">L&#8323;<div class="sub">Loss</div></div>
+            <div class="node" id="y3">&#375;&#8323;<div class="sub">&ldquo;sont&rdquo;</div></div>
+            <div class="node" id="s3">s&#8323;<div class="sub">Dec State</div></div>
+            <div class="node" id="x3">x&#8323;<div class="sub">&ldquo;cl&eacute;s&rdquo;</div></div>
           </div>
         </div>
       </div>
-      <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
-        Shared Parameters: \(W_{sx}\) (input-hidden), \(W_{ss}\) (recurrent state), \(W_c\) (encoder context), \(W_{sy}\) (vocab projection)
+
+      <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-top:4px;">
+        Shared Parameters: \(W_{ex}, W_{ee}\) (encoder) &nbsp;|&nbsp; \(W_{sx}, W_{ss}, W_c, W_{sy}\) (decoder)
       </div>
     </div>
 
     <!-- RIGHT: Rigorous Math Panel -->
     <div class="math-card">
-      <h3>$$\sum \text{Formal Calculus Breakdown}$$</h3>
+      <h3>Formal Calculus Breakdown</h3>
       <div class="math-content" id="math-panel">
-        Select a decoder step below to view exact forward matrix multiplications or backpropagation chain-rule derivations for Machine Translation.
+        Select an encoder or decoder step below to view exact forward matrix multiplications or backpropagation chain-rule derivations for Machine Translation.
       </div>
     </div>
   </div>
 
   <div class="controls">
-    <button class="btn-fwd" onclick="stepForward(1)">Forward t=1 ("Les")</button>
-    <button class="btn-fwd" onclick="stepForward(2)">Forward t=2 ("clés")</button>
-    <button class="btn-fwd" onclick="stepForward(3)">Forward t=3 ("sont")</button>
+    <div class="control-group-label">1. Encode (English &#8594; Context Vector)</div>
+    <button class="btn-enc" onclick="stepEncode(1)">Encode t=1 (&ldquo;The&rdquo;)</button>
+    <button class="btn-enc" onclick="stepEncode(2)">Encode t=2 (&ldquo;keys&rdquo;)</button>
+    <button class="btn-enc" onclick="stepEncode(3)">Encode t=3 (&ldquo;are&rdquo;) &#8594; c</button>
+
+    <div class="control-group-label">2. Decode (Context Vector &#8594; French)</div>
+    <button class="btn-fwd" onclick="stepForward(1)">Decode t=1 (&ldquo;Les&rdquo;)</button>
+    <button class="btn-fwd" onclick="stepForward(2)">Decode t=2 (&ldquo;cl&eacute;s&rdquo;)</button>
+    <button class="btn-fwd" onclick="stepForward(3)">Decode t=3 (&ldquo;sont&rdquo;)</button>
+
+    <div class="control-group-label">3. Backpropagate Through Time (Decoder &#8594; Encoder)</div>
     <button class="btn-bwd" onclick="stepBPTT(3)">BPTT Step t=3</button>
     <button class="btn-bwd" onclick="stepBPTT(2)">BPTT Step t=2</button>
     <button class="btn-bwd" onclick="stepBPTT(1)">BPTT Step t=1</button>
+    <button class="btn-bwd" onclick="stepEncoderBackward()">Backprop into Encoder</button>
     <button onclick="resetAll()">Reset</button>
   </div>
 </div>
 
 <script>
   function clearAll() {
-    document.querySelectorAll('.node').forEach(n => n.className = 'node');
+    document.querySelectorAll('.node').forEach(n => n.className = 'node' + (n.id === 'ctxNode' ? ' context-node' : ''));
     document.querySelectorAll('.line').forEach(l => l.className = 'line');
   }
 
   function setNodes(ids, cls) {
     ids.forEach(id => {
       const el = document.getElementById(id);
-      if(el) el.classList.add(cls);
+      if (el) el.classList.add(cls);
     });
   }
 
   function setLines(ids, cls) {
     ids.forEach(id => {
       const el = document.getElementById(id);
-      if(el) el.classList.add(cls);
+      if (el) el.classList.add(cls);
     });
   }
 
@@ -369,25 +488,86 @@
     }
   }
 
+  // ---------------------------------------------------------------
+  // PHASE 1: ENCODER — reads the source sentence, builds a hidden
+  // state step by step. No output/loss at this stage — the encoder's
+  // only job is to compress "The keys are" into a single vector.
+  // ---------------------------------------------------------------
+  function stepEncode(t) {
+    clearAll();
+    if (t === 1) {
+      setNodes(['ex1', 'e1'], 'active-enc');
+      setLines(['l-ex1-e1'], 'active-enc');
+      updateMath(`
+        <div class="eq-highlight eq-enc">
+          <strong>1. Encoder Hidden State Update (first word):</strong><br/>
+          $$z_1 = W_{ex} x_1 + W_{ee} e_0 + b_e \\quad (x_1 = \\text{"The"},\\; e_0 = \\vec{0})$$
+          $$e_1 = \\tanh(z_1)$$
+        </div>
+        <div class="eq-highlight eq-enc">
+          <strong>What just happened:</strong><br/>
+          The encoder has no output or loss yet &mdash; it is only building an internal summary of the sentence so far.
+        </div>
+      `);
+    } else if (t === 2) {
+      setNodes(['ex1', 'e1', 'ex2', 'e2'], 'active-enc');
+      setLines(['l-ex1-e1', 'l-e1-e2', 'l-ex2-e2'], 'active-enc');
+      updateMath(`
+        <div class="eq-highlight eq-enc">
+          <strong>1. Encoder Hidden State Update (second word):</strong><br/>
+          $$z_2 = W_{ex} x_2 + W_{ee} e_1 + b_e \\quad (x_2 = \\text{"keys"})$$
+          $$e_2 = \\tanh(z_2)$$
+        </div>
+        <div class="eq-highlight eq-enc">
+          <strong>Same recurrence as before:</strong><br/>
+          \\(e_2\\) now carries information about both &ldquo;The&rdquo; and &ldquo;keys&rdquo;, folded into one vector.
+        </div>
+      `);
+    } else if (t === 3) {
+      setNodes(['ex1', 'e1', 'ex2', 'e2', 'ex3', 'e3', 'ctxNode'], 'active-enc');
+      setLines(['l-ex1-e1', 'l-e1-e2', 'l-ex2-e2', 'l-e2-e3', 'l-ex3-e3'], 'active-enc');
+      updateMath(`
+        <div class="eq-highlight eq-enc">
+          <strong>1. Final Encoder Hidden State (last word):</strong><br/>
+          $$z_3 = W_{ex} x_3 + W_{ee} e_2 + b_e \\quad (x_3 = \\text{"are"})$$
+          $$e_3 = \\tanh(z_3)$$
+        </div>
+        <div class="eq-highlight eq-enc">
+          <strong>2. Freeze the Context Vector:</strong><br/>
+          $$c := e_3$$
+        </div>
+        <div class="eq-highlight">
+          <strong>Handoff to the decoder:</strong><br/>
+          The entire meaning of &ldquo;The keys are&rdquo; is now compressed into the single vector \\(c\\). Every decoder step below will read from this same \\(c\\).
+        </div>
+      `);
+    }
+  }
+
+  // ---------------------------------------------------------------
+  // PHASE 2: DECODER — generates the French sentence one token at a
+  // time, conditioned on the context vector c from the encoder.
+  // ---------------------------------------------------------------
   function stepForward(t) {
     clearAll();
+    setNodes(['ctxNode'], 'active-fwd');
     if (t === 1) {
       setNodes(['x1', 's1', 'y1', 'L1'], 'active-fwd');
       setLines(['l-x1-s1', 'l-s1-y1', 'l-y1-L1'], 'active-fwd');
       updateMath(`
         <div class="eq-highlight">
-          <strong>1. Decoder State Activation (Injecting Context \(c\)):</strong><br/>
-          $$z_1 = W_{sx} x_1 + W_{ss} s_0 + W_{c} c + b_s$$
-          $$s_1 = \\tanh(z_1) \\quad (x_1 = \\text{"<SOS>"})$$
+          <strong>1. Decoder State Activation (Injecting Context \\(c\\)):</strong><br/>
+          $$z_1 = W_{sx} x_1 + W_{ss} s_0 + W_c c + b_s$$
+          $$s_1 = \\tanh(z_1) \\quad (x_1 = \\langle\\text{SOS}\\rangle)$$
         </div>
         <div class="eq-highlight">
-          <strong>2. French Vocabulary Projection & Softmax:</strong><br/>
+          <strong>2. French Vocabulary Projection &amp; Softmax:</strong><br/>
           $$o_1 = W_{sy} s_1 + b_y$$
-          $$\\hat{y}_1 = \\text{softmax}(o_1) \\implies P(\\text{"Les"} \\mid c, \\text{"<SOS>"})$$
+          $$\\hat{y}_1 = \\text{softmax}(o_1) \\implies P(\\text{"Les"} \\mid c, \\langle\\text{SOS}\\rangle)$$
         </div>
         <div class="eq-highlight">
           <strong>3. Step Cross-Entropy Loss:</strong><br/>
-          $$L_1 = - \\log \\hat{y}_{1, \\text{Les}}$$
+          $$L_1 = -\\log \\hat{y}_{1,\\,\\text{Les}}$$
         </div>
       `);
     } else if (t === 2) {
@@ -395,14 +575,14 @@
       setLines(['l-x1-s1', 'l-s1-s2', 'l-x2-s2', 'l-s2-y2', 'l-y2-L2'], 'active-fwd');
       updateMath(`
         <div class="eq-highlight">
-          <strong>1. Recurrent State Update (Conditioned on \(s_1\) & \(c\)):</strong><br/>
-          $$z_2 = W_{sx} x_2 + W_{ss} s_1 + W_{c} c + b_s \\quad (x_2 = \\text{"Les"})$$
+          <strong>1. Recurrent State Update (Conditioned on \\(s_1\\) &amp; \\(c\\)):</strong><br/>
+          $$z_2 = W_{sx} x_2 + W_{ss} s_1 + W_c c + b_s \\quad (x_2 = \\text{"Les"})$$
           $$s_2 = \\tanh(z_2)$$
         </div>
         <div class="eq-highlight">
-          <strong>2. Prediction & Token Loss:</strong><br/>
+          <strong>2. Prediction &amp; Token Loss:</strong><br/>
           $$o_2 = W_{sy} s_2 + b_y \\implies \\hat{y}_2 = \\text{softmax}(o_2)$$
-          $$L_2 = - \\log \\hat{y}_{2, \\text{clés}}$$
+          $$L_2 = -\\log \\hat{y}_{2,\\,\\text{cl\\'es}}$$
         </div>
       `);
     } else if (t === 3) {
@@ -410,18 +590,23 @@
       setLines(['l-x1-s1', 'l-s1-s2', 'l-x2-s2', 'l-s2-s3', 'l-x3-s3', 'l-s3-y3', 'l-y3-L3'], 'active-fwd');
       updateMath(`
         <div class="eq-highlight">
-          <strong>1. Recurrent State Update (Conditioned on \(s_2\) & \(c\)):</strong><br/>
-          $$z_3 = W_{sx} x_3 + W_{ss} s_2 + W_{c} c + b_s \\quad (x_3 = \\text{"clés"})$$
+          <strong>1. Recurrent State Update (Conditioned on \\(s_2\\) &amp; \\(c\\)):</strong><br/>
+          $$z_3 = W_{sx} x_3 + W_{ss} s_2 + W_c c + b_s \\quad (x_3 = \\text{"cl\\'es"})$$
           $$s_3 = \\tanh(z_3)$$
         </div>
         <div class="eq-highlight">
           <strong>2. Sequence Cross-Entropy Loss:</strong><br/>
-          $$L_{\\text{MT}} = L_1 + L_2 + L_3 = - \\sum_{t=1}^{3} \\log \\hat{y}_{t, \\text{target}_t}$$
+          $$L_{\\text{MT}} = L_1 + L_2 + L_3 = -\\sum_{t=1}^{3} \\log \\hat{y}_{t,\\,\\text{target}_t}$$
         </div>
       `);
     }
   }
 
+  // ---------------------------------------------------------------
+  // PHASE 3: BACKPROPAGATION THROUGH TIME — gradients flow backward
+  // through the decoder first, then across the context bridge into
+  // the encoder.
+  // ---------------------------------------------------------------
   function stepBPTT(t) {
     clearAll();
     if (t === 3) {
@@ -433,12 +618,12 @@
           $$\\delta_{o,3} = \\frac{\\partial L_3}{\\partial o_3} = \\hat{y}_3 - y_3$$
         </div>
         <div class="eq-highlight eq-bwd">
-          <strong>2. Gradient w.r.t Decoder State \(s_3\):</strong><br/>
+          <strong>2. Gradient w.r.t Decoder State \\(s_3\\):</strong><br/>
           $$\\delta_{s,3} = \\frac{\\partial L}{\\partial s_3} = W_{sy}^T \\delta_{o,3}$$
         </div>
         <div class="eq-highlight eq-bwd">
-          <strong>3. Gradient w.r.t Shared Context Matrix \(W_c\):</strong><br/>
-          $$\\frac{\\partial L_3}{\\partial W_c} = \\left( \\delta_{s,3} \\odot (1 - s_3^2) \\right) c^T$$
+          <strong>3. Gradient w.r.t Shared Context Matrix \\(W_c\\):</strong><br/>
+          $$\\frac{\\partial L_3}{\\partial W_c} = \\left(\\delta_{s,3} \\odot (1 - s_3^2)\\right) c^T$$
         </div>
       `);
     } else if (t === 2) {
@@ -446,12 +631,12 @@
       setLines(['l-y3-L3', 'l-s3-y3', 'l-s2-s3', 'l-y2-L2', 'l-s2-y2'], 'active-bwd');
       updateMath(`
         <div class="eq-highlight eq-bwd">
-          <strong>1. Temporal Chain Rule Across Decoder (\(s_3 \\to s_2\)):</strong><br/>
-          $$\\frac{\\partial s_3}{\\partial s_2} = \\text{diag}(1 - s_3^2) W_{ss}$$
+          <strong>1. Temporal Chain Rule Across Decoder (\\(s_3 \\to s_2\\)):</strong><br/>
+          $$\\frac{\\partial s_3}{\\partial s_2} = \\text{diag}(1 - s_3^2)\\, W_{ss}$$
         </div>
         <div class="eq-highlight eq-bwd">
-          <strong>2. Total Gradient w.r.t Decoder State \(s_2\):</strong><br/>
-          $$\\delta_{s,2} = \\underbrace{W_{sy}^T \\delta_{o,2}}_{\\text{Direct Loss } L_2} + \\underbrace{W_{ss}^T \\left( \\delta_{s,3} \\odot (1 - s_3^2) \\right)}_{\\text{Recurrent Flow from } t=3}$$
+          <strong>2. Total Gradient w.r.t Decoder State \\(s_2\\):</strong><br/>
+          $$\\delta_{s,2} = \\underbrace{W_{sy}^T \\delta_{o,2}}_{\\text{Direct loss } L_2} + \\underbrace{W_{ss}^T\\left(\\delta_{s,3} \\odot (1 - s_3^2)\\right)}_{\\text{Recurrent flow from } t=3}$$
         </div>
       `);
     } else if (t === 1) {
@@ -459,21 +644,53 @@
       setLines(['l-y3-L3', 'l-s3-y3', 'l-s2-s3', 'l-y2-L2', 'l-s2-y2', 'l-s1-s2', 'l-y1-L1', 'l-s1-y1', 'l-x1-s1'], 'active-bwd');
       updateMath(`
         <div class="eq-highlight eq-bwd">
-          <strong>1. Full Unrolled Backpropagation to Initial State \(s_1\):</strong><br/>
-          $$\\delta_{s,1} = W_{sy}^T \\delta_{o,1} + W_{ss}^T \\left( \\delta_{s,2} \\odot (1 - s_2^2) \\right)$$
+          <strong>1. Full Unrolled Backpropagation to Initial Decoder State \\(s_1\\):</strong><br/>
+          $$\\delta_{s,1} = W_{sy}^T \\delta_{o,1} + W_{ss}^T\\left(\\delta_{s,2} \\odot (1 - s_2^2)\\right)$$
         </div>
         <div class="eq-highlight eq-bwd">
-          <strong>2. Backpropagating into Encoder Context Vector \(c\):</strong><br/>
-          $$\\frac{\\partial L}{\\partial c} = \\sum_{t=1}^{3} W_c^T \\left( \\delta_{s,t} \\odot (1 - s_t^2) \\right)$$
-          <small style="color:var(--text-muted)">*This gradient flows backwards across the context bridge to update Encoder weights!*</small>
+          <strong>2. Accumulated Gradient w.r.t Context Vector \\(c\\):</strong><br/>
+          $$\\frac{\\partial L}{\\partial c} = \\sum_{t=1}^{3} W_c^T \\left(\\delta_{s,t} \\odot (1 - s_t^2)\\right)$$
+        </div>
+        <div class="eq-highlight">
+          <strong>All three decoder steps have now sent a gradient into \\(c\\).</strong><br/>
+          Click &ldquo;Backprop into Encoder&rdquo; to see where that gradient goes next.
         </div>
       `);
     }
   }
 
+  // ---------------------------------------------------------------
+  // PHASE 4: gradient crosses the context bridge back into the
+  // encoder, updating the weights that built c in the first place.
+  // ---------------------------------------------------------------
+  function stepEncoderBackward() {
+    clearAll();
+    setNodes(['ctxNode', 'e3', 'e2', 'e1', 'ex3', 'ex2', 'ex1'], 'active-bwd');
+    setLines(['l-e2-e3', 'l-e1-e2', 'l-ex1-e1', 'l-ex2-e2', 'l-ex3-e3'], 'active-bwd');
+    updateMath(`
+      <div class="eq-highlight eq-bwd">
+        <strong>1. Gradient Crosses the Context Bridge:</strong><br/>
+        $$\\delta_{e,3} = \\frac{\\partial L}{\\partial e_3} = \\frac{\\partial L}{\\partial c} \\quad (\\text{since } c = e_3)$$
+      </div>
+      <div class="eq-highlight eq-bwd">
+        <strong>2. Backpropagate Through the Encoder's Own Recurrence:</strong><br/>
+        $$\\delta_{e,2} = W_{ee}^T \\left(\\delta_{e,3} \\odot (1 - e_3^2)\\right)$$
+        $$\\delta_{e,1} = W_{ee}^T \\left(\\delta_{e,2} \\odot (1 - e_2^2)\\right)$$
+      </div>
+      <div class="eq-highlight eq-bwd">
+        <strong>3. Encoder Weight Gradients:</strong><br/>
+        $$\\frac{\\partial L}{\\partial W_{ex}} = \\sum_{t=1}^{3} \\left(\\delta_{e,t} \\odot (1 - e_t^2)\\right) x_t^T$$
+      </div>
+      <div class="eq-highlight">
+        <strong>The loop is closed:</strong><br/>
+        A translation error at decoder step \\(t{=}3\\) has now updated the very first encoder weights that read &ldquo;The&rdquo; &mdash; end-to-end training in one pass.
+      </div>
+    `);
+  }
+
   function resetAll() {
     clearAll();
-    updateMath("Select a decoder step below to view exact forward matrix multiplications or backpropagation chain-rule derivations for Machine Translation.");
+    updateMath("Select an encoder or decoder step below to view exact forward matrix multiplications or backpropagation chain-rule derivations for Machine Translation.");
   }
 </script>
 </body>
