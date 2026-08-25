@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rigorous RNN Forward & BPTT Calculus Visualizer</title>
+  <title>English-to-French RNN Translation: Rigorous Calculus Visualizer</title>
   <!-- MathJax for rendering latex formulas -->
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
   <style>
@@ -15,7 +15,7 @@
       --fwd-color: #38bdf8;   /* Cyan for Forward */
       --math-color: #a78bfa;  /* Purple for Math */
       --bwd-color: #f87171;   /* Coral/Red for Gradients */
-      --param-color: #fbbf24; /* Amber for Weights */
+      --param-color: #fbbf24; /* Amber for Context/Weights */
       --node-border: #374151;
     }
 
@@ -39,7 +39,7 @@
       border-radius: 20px;
       border: 1px solid #1f2937;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-      max-width: 1050px;
+      max-width: 1080px;
       width: 100%;
     }
 
@@ -54,6 +54,18 @@
       text-align: center;
       color: var(--text-muted);
       font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+
+    .context-banner {
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid var(--param-color);
+      color: var(--param-color);
+      padding: 8px 14px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
       margin-bottom: 20px;
     }
 
@@ -64,7 +76,7 @@
       gap: 20px;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 920px) {
       .main-grid { grid-template-columns: 1fr; }
     }
 
@@ -82,7 +94,7 @@
 
     .viz-canvas {
       position: relative;
-      height: 320px;
+      height: 330px;
       width: 100%;
     }
 
@@ -137,8 +149,8 @@
     }
 
     .node {
-      width: 52px;
-      height: 52px;
+      width: 58px;
+      height: 54px;
       border-radius: 12px;
       background: #0f172a;
       border: 2px solid var(--node-border);
@@ -150,6 +162,7 @@
       font-size: 0.85rem;
       transition: all 0.35s ease;
       color: var(--text);
+      text-align: center;
     }
 
     .node .sub {
@@ -229,7 +242,7 @@
       background: #1f2937;
       color: var(--text);
       border: 1px solid #374151;
-      padding: 10px 18px;
+      padding: 10px 16px;
       border-radius: 8px;
       font-weight: 600;
       font-size: 0.85rem;
@@ -247,8 +260,12 @@
 <body>
 
 <div class="container">
-  <h2>Recurrent Neural Network: Rigorous Calculus & Flow</h2>
-  <div class="subtitle">Step-by-step Forward Recurrence & Backpropagation Through Time (BPTT) Equations</div>
+  <h2>RNN Machine Translation: Rigorous Decoder Calculus</h2>
+  <div class="subtitle">Forward Recurrence & BPTT Gradient Flow for English ➔ French Generation</div>
+
+  <div class="context-banner">
+    Source Context Vector \(c = \text{Encoder}(\text{"The keys are"})\) | Target Generation: \(\text{"Les"} \to \text{"clés"} \to \text{"sont"}\)
+  </div>
 
   <div class="main-grid">
     <!-- LEFT: Computation Graph -->
@@ -256,51 +273,51 @@
       <div class="viz-canvas">
         <svg class="connections">
           <!-- Step 1 Verticals -->
-          <line id="l-x1-h1" x1="16%" y1="280" x2="16%" y2="190" class="line" />
-          <line id="l-h1-y1" x1="16%" y1="190" x2="16%" y2="100" class="line" />
+          <line id="l-x1-s1" x1="16%" y1="280" x2="16%" y2="190" class="line" />
+          <line id="l-s1-y1" x1="16%" y1="190" x2="16%" y2="100" class="line" />
           <line id="l-y1-L1" x1="16%" y1="100" x2="16%" y2="30"  class="line" />
 
           <!-- Step 2 Verticals -->
-          <line id="l-x2-h2" x1="50%" y1="280" x2="50%" y2="190" class="line" />
-          <line id="l-h2-y2" x1="50%" y1="190" x2="50%" y2="100" class="line" />
+          <line id="l-x2-s2" x1="50%" y1="280" x2="50%" y2="190" class="line" />
+          <line id="l-s2-y2" x1="50%" y1="190" x2="50%" y2="100" class="line" />
           <line id="l-y2-L2" x1="50%" y1="100" x2="50%" y2="30"  class="line" />
 
           <!-- Step 3 Verticals -->
-          <line id="l-x3-h3" x1="84%" y1="280" x2="84%" y2="190" class="line" />
-          <line id="l-h3-y3" x1="84%" y1="190" x2="84%" y2="100" class="line" />
+          <line id="l-x3-s3" x1="84%" y1="280" x2="84%" y2="190" class="line" />
+          <line id="l-s3-y3" x1="84%" y1="190" x2="84%" y2="100" class="line" />
           <line id="l-y3-L3" x1="84%" y1="100" x2="84%" y2="30"  class="line" />
 
           <!-- Recurrent Horizontal Links -->
-          <line id="l-h1-h2" x1="16%" y1="190" x2="50%" y2="190" class="line" />
-          <line id="l-h2-h3" x1="50%" y1="190" x2="84%" y2="190" class="line" />
+          <line id="l-s1-s2" x1="16%" y1="190" x2="50%" y2="190" class="line" />
+          <line id="l-s2-s3" x1="50%" y1="190" x2="84%" y2="190" class="line" />
         </svg>
 
         <div class="nodes-grid">
           <!-- Step 1 -->
           <div class="step-col">
             <div class="node" id="L1">L₁<div class="sub">Loss</div></div>
-            <div class="node" id="y1">ŷ₁<div class="sub">Softmax</div></div>
-            <div class="node" id="h1">h₁<div class="sub">Hidden</div></div>
-            <div class="node" id="x1">x₁<div class="sub">Input</div></div>
+            <div class="node" id="y1">ŷ₁<div class="sub">"Les"</div></div>
+            <div class="node" id="s1">s₁<div class="sub">Dec State</div></div>
+            <div class="node" id="x1">x₁<div class="sub">&lt;SOS&gt;</div></div>
           </div>
           <!-- Step 2 -->
           <div class="step-col">
             <div class="node" id="L2">L₂<div class="sub">Loss</div></div>
-            <div class="node" id="y2">ŷ₂<div class="sub">Softmax</div></div>
-            <div class="node" id="h2">h₂<div class="sub">Hidden</div></div>
-            <div class="node" id="x2">x₂<div class="sub">Input</div></div>
+            <div class="node" id="y2">ŷ₂<div class="sub">"clés"</div></div>
+            <div class="node" id="s2">s₂<div class="sub">Dec State</div></div>
+            <div class="node" id="x2">x₂<div class="sub">"Les"</div></div>
           </div>
           <!-- Step 3 -->
           <div class="step-col">
             <div class="node" id="L3">L₃<div class="sub">Loss</div></div>
-            <div class="node" id="y3">ŷ₃<div class="sub">Softmax</div></div>
-            <div class="node" id="h3">h₃<div class="sub">Hidden</div></div>
-            <div class="node" id="x3">x₃<div class="sub">Input</div></div>
+            <div class="node" id="y3">ŷ₃<div class="sub">"sont"</div></div>
+            <div class="node" id="s3">s₃<div class="sub">Dec State</div></div>
+            <div class="node" id="x3">x₃<div class="sub">"clés"</div></div>
           </div>
         </div>
       </div>
       <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
-        Shared Weights across time: \(W_{xh}\) (input-hidden), \(W_{hh}\) (hidden-hidden), \(W_{hy}\) (hidden-output)
+        Shared Parameters: \(W_{sx}\) (input-hidden), \(W_{ss}\) (recurrent state), \(W_c\) (encoder context), \(W_{sy}\) (vocab projection)
       </div>
     </div>
 
@@ -308,15 +325,15 @@
     <div class="math-card">
       <h3>$$\sum \text{Formal Calculus Breakdown}$$</h3>
       <div class="math-content" id="math-panel">
-        Select a step below to view exact forward matrix multiplications or backpropagation chain-rule derivations.
+        Select a decoder step below to view exact forward matrix multiplications or backpropagation chain-rule derivations for Machine Translation.
       </div>
     </div>
   </div>
 
   <div class="controls">
-    <button class="btn-fwd" onclick="stepForward(1)">Forward Step t=1</button>
-    <button class="btn-fwd" onclick="stepForward(2)">Forward Step t=2</button>
-    <button class="btn-fwd" onclick="stepForward(3)">Forward Step t=3</button>
+    <button class="btn-fwd" onclick="stepForward(1)">Forward t=1 ("Les")</button>
+    <button class="btn-fwd" onclick="stepForward(2)">Forward t=2 ("clés")</button>
+    <button class="btn-fwd" onclick="stepForward(3)">Forward t=3 ("sont")</button>
     <button class="btn-bwd" onclick="stepBPTT(3)">BPTT Step t=3</button>
     <button class="btn-bwd" onclick="stepBPTT(2)">BPTT Step t=2</button>
     <button class="btn-bwd" onclick="stepBPTT(1)">BPTT Step t=1</button>
@@ -355,51 +372,51 @@
   function stepForward(t) {
     clearAll();
     if (t === 1) {
-      setNodes(['x1', 'h1', 'y1', 'L1'], 'active-fwd');
-      setLines(['l-x1-h1', 'l-h1-y1', 'l-y1-L1'], 'active-fwd');
+      setNodes(['x1', 's1', 'y1', 'L1'], 'active-fwd');
+      setLines(['l-x1-s1', 'l-s1-y1', 'l-y1-L1'], 'active-fwd');
       updateMath(`
         <div class="eq-highlight">
-          <strong>1. Hidden State Activation:</strong><br/>
-          $$z_1 = W_{xh} x_1 + W_{hh} h_0 + b_h$$
-          $$h_1 = \\tanh(z_1)$$
+          <strong>1. Decoder State Activation (Injecting Context \(c\)):</strong><br/>
+          $$z_1 = W_{sx} x_1 + W_{ss} s_0 + W_{c} c + b_s$$
+          $$s_1 = \\tanh(z_1) \\quad (x_1 = \\text{"<SOS>"})$$
         </div>
         <div class="eq-highlight">
-          <strong>2. Output & Softmax Prediction:</strong><br/>
-          $$o_1 = W_{hy} h_1 + b_y$$
-          $$\\hat{y}_1 = \\text{softmax}(o_1)$$
+          <strong>2. French Vocabulary Projection & Softmax:</strong><br/>
+          $$o_1 = W_{sy} s_1 + b_y$$
+          $$\\hat{y}_1 = \\text{softmax}(o_1) \\implies P(\\text{"Les"} \\mid c, \\text{"<SOS>"})$$
         </div>
         <div class="eq-highlight">
-          <strong>3. Step Loss Calculation:</strong><br/>
-          $$L_1 = - \\sum_{k} y_{1,k} \\log \\hat{y}_{1,k}$$
+          <strong>3. Step Cross-Entropy Loss:</strong><br/>
+          $$L_1 = - \\log \\hat{y}_{1, \\text{Les}}$$
         </div>
       `);
     } else if (t === 2) {
-      setNodes(['x1', 'h1', 'x2', 'h2', 'y2', 'L2'], 'active-fwd');
-      setLines(['l-x1-h1', 'l-h1-h2', 'l-x2-h2', 'l-h2-y2', 'l-y2-L2'], 'active-fwd');
+      setNodes(['x1', 's1', 'x2', 's2', 'y2', 'L2'], 'active-fwd');
+      setLines(['l-x1-s1', 'l-s1-s2', 'l-x2-s2', 'l-s2-y2', 'l-y2-L2'], 'active-fwd');
       updateMath(`
         <div class="eq-highlight">
-          <strong>1. Recurrent State Update (Injecting \(h_1\)):</strong><br/>
-          $$z_2 = W_{xh} x_2 + W_{hh} \\mathbf{h_1} + b_h$$
-          $$h_2 = \\tanh(z_2)$$
+          <strong>1. Recurrent State Update (Conditioned on \(s_1\) & \(c\)):</strong><br/>
+          $$z_2 = W_{sx} x_2 + W_{ss} s_1 + W_{c} c + b_s \\quad (x_2 = \\text{"Les"})$$
+          $$s_2 = \\tanh(z_2)$$
         </div>
         <div class="eq-highlight">
-          <strong>2. Prediction & Loss:</strong><br/>
-          $$o_2 = W_{hy} h_2 + b_y \\implies \\hat{y}_2 = \\text{softmax}(o_2)$$
-          $$L_2 = - \\sum_{k} y_{2,k} \\log \\hat{y}_{2,k}$$
+          <strong>2. Prediction & Token Loss:</strong><br/>
+          $$o_2 = W_{sy} s_2 + b_y \\implies \\hat{y}_2 = \\text{softmax}(o_2)$$
+          $$L_2 = - \\log \\hat{y}_{2, \\text{clés}}$$
         </div>
       `);
     } else if (t === 3) {
-      setNodes(['x1', 'h1', 'x2', 'h2', 'x3', 'h3', 'y3', 'L3'], 'active-fwd');
-      setLines(['l-x1-h1', 'l-h1-h2', 'l-x2-h2', 'l-h2-h3', 'l-x3-h3', 'l-h3-y3', 'l-y3-L3'], 'active-fwd');
+      setNodes(['x1', 's1', 'x2', 's2', 'x3', 's3', 'y3', 'L3'], 'active-fwd');
+      setLines(['l-x1-s1', 'l-s1-s2', 'l-x2-s2', 'l-s2-s3', 'l-x3-s3', 'l-s3-y3', 'l-y3-L3'], 'active-fwd');
       updateMath(`
         <div class="eq-highlight">
-          <strong>1. Recurrent State Update (Injecting \(h_2\)):</strong><br/>
-          $$z_3 = W_{xh} x_3 + W_{hh} \\mathbf{h_2} + b_h$$
-          $$h_3 = \\tanh(z_3)$$
+          <strong>1. Recurrent State Update (Conditioned on \(s_2\) & \(c\)):</strong><br/>
+          $$z_3 = W_{sx} x_3 + W_{ss} s_2 + W_{c} c + b_s \\quad (x_3 = \\text{"clés"})$$
+          $$s_3 = \\tanh(z_3)$$
         </div>
         <div class="eq-highlight">
-          <strong>2. Total Sequence Loss:</strong><br/>
-          $$L_{\\text{total}} = L_1 + L_2 + L_3 = - \\sum_{t=1}^{3} \\sum_{k} y_{t,k} \\log \\hat{y}_{t,k}$$
+          <strong>2. Sequence Cross-Entropy Loss:</strong><br/>
+          $$L_{\\text{MT}} = L_1 + L_2 + L_3 = - \\sum_{t=1}^{3} \\log \\hat{y}_{t, \\text{target}_t}$$
         </div>
       `);
     }
@@ -408,47 +425,47 @@
   function stepBPTT(t) {
     clearAll();
     if (t === 3) {
-      setNodes(['L3', 'y3', 'h3'], 'active-bwd');
-      setLines(['l-y3-L3', 'l-h3-y3'], 'active-bwd');
+      setNodes(['L3', 'y3', 's3'], 'active-bwd');
+      setLines(['l-y3-L3', 'l-s3-y3'], 'active-bwd');
       updateMath(`
         <div class="eq-highlight eq-bwd">
-          <strong>1. Output Error Gradient at t=3:</strong><br/>
+          <strong>1. Output Vocab Error Gradient at t=3:</strong><br/>
           $$\\delta_{o,3} = \\frac{\\partial L_3}{\\partial o_3} = \\hat{y}_3 - y_3$$
         </div>
         <div class="eq-highlight eq-bwd">
-          <strong>2. Gradient w.r.t Hidden State \(h_3\):</strong><br/>
-          $$\\delta_{h,3} = \\frac{\\partial L}{\\partial h_3} = W_{hy}^T \\delta_{o,3}$$
+          <strong>2. Gradient w.r.t Decoder State \(s_3\):</strong><br/>
+          $$\\delta_{s,3} = \\frac{\\partial L}{\\partial s_3} = W_{sy}^T \\delta_{o,3}$$
         </div>
         <div class="eq-highlight eq-bwd">
-          <strong>3. Parameter Gradients Accumulation:</strong><br/>
-          $$\\frac{\\partial L_3}{\\partial W_{hh}} = (\\delta_{h,3} \\odot (1 - h_3^2)) h_2^T$$
+          <strong>3. Gradient w.r.t Shared Context Matrix \(W_c\):</strong><br/>
+          $$\\frac{\\partial L_3}{\\partial W_c} = \\left( \\delta_{s,3} \\odot (1 - s_3^2) \\right) c^T$$
         </div>
       `);
     } else if (t === 2) {
-      setNodes(['L3', 'y3', 'h3', 'L2', 'y2', 'h2'], 'active-bwd');
-      setLines(['l-y3-L3', 'l-h3-y3', 'l-h2-h3', 'l-y2-L2', 'l-h2-y2'], 'active-bwd');
+      setNodes(['L3', 'y3', 's3', 'L2', 'y2', 's2'], 'active-bwd');
+      setLines(['l-y3-L3', 'l-s3-y3', 'l-s2-s3', 'l-y2-L2', 'l-s2-y2'], 'active-bwd');
       updateMath(`
         <div class="eq-highlight eq-bwd">
-          <strong>1. Chain Rule Across Time (\(h_3 \\to h_2\)):</strong><br/>
-          $$\\frac{\\partial h_3}{\\partial h_2} = \\text{diag}(1 - h_3^2) W_{hh}$$
+          <strong>1. Temporal Chain Rule Across Decoder (\(s_3 \\to s_2\)):</strong><br/>
+          $$\\frac{\\partial s_3}{\\partial s_2} = \\text{diag}(1 - s_3^2) W_{ss}$$
         </div>
         <div class="eq-highlight eq-bwd">
-          <strong>2. Total Gradient w.r.t Hidden State \(h_2\):</strong><br/>
-          $$\\delta_{h,2} = \\underbrace{W_{hy}^T \\delta_{o,2}}_{\\text{Direct Loss } L_2} + \\underbrace{W_{hh}^T \\left( \\delta_{h,3} \\odot (1 - h_3^2) \\right)}_{\\text{Recurrent Gradient from } t=3}$$
+          <strong>2. Total Gradient w.r.t Decoder State \(s_2\):</strong><br/>
+          $$\\delta_{s,2} = \\underbrace{W_{sy}^T \\delta_{o,2}}_{\\text{Direct Loss } L_2} + \\underbrace{W_{ss}^T \\left( \\delta_{s,3} \\odot (1 - s_3^2) \\right)}_{\\text{Recurrent Flow from } t=3}$$
         </div>
       `);
     } else if (t === 1) {
-      setNodes(['L3', 'y3', 'h3', 'L2', 'y2', 'h2', 'L1', 'y1', 'h1', 'x1'], 'active-bwd');
-      setLines(['l-y3-L3', 'l-h3-y3', 'l-h2-h3', 'l-y2-L2', 'l-h2-y2', 'l-h1-h2', 'l-y1-L1', 'l-h1-y1', 'l-x1-h1'], 'active-bwd');
+      setNodes(['L3', 'y3', 's3', 'L2', 'y2', 's2', 'L1', 'y1', 's1', 'x1'], 'active-bwd');
+      setLines(['l-y3-L3', 'l-s3-y3', 'l-s2-s3', 'l-y2-L2', 'l-s2-y2', 'l-s1-s2', 'l-y1-L1', 'l-s1-y1', 'l-x1-s1'], 'active-bwd');
       updateMath(`
         <div class="eq-highlight eq-bwd">
-          <strong>1. Full Unrolled Chain Rule (\(h_1\)):</strong><br/>
-          $$\\delta_{h,1} = W_{hy}^T \\delta_{o,1} + W_{hh}^T \\left( \\delta_{h,2} \\odot (1 - h_2^2) \\right)$$
+          <strong>1. Full Unrolled Backpropagation to Initial State \(s_1\):</strong><br/>
+          $$\\delta_{s,1} = W_{sy}^T \\delta_{o,1} + W_{ss}^T \\left( \\delta_{s,2} \\odot (1 - s_2^2) \\right)$$
         </div>
         <div class="eq-highlight eq-bwd">
-          <strong>2. Final Shared Parameter Gradient Update:</strong><br/>
-          $$\\frac{\\partial L}{\\partial W_{hh}} = \\sum_{t=1}^{3} \\left( \\delta_{h,t} \\odot (1 - h_t^2) \\right) h_{t-1}^T$$
-          $$\\frac{\\partial L}{\\partial W_{xh}} = \\sum_{t=1}^{3} \\left( \\delta_{h,t} \\odot (1 - h_t^2) \\right) x_t^T$$
+          <strong>2. Backpropagating into Encoder Context Vector \(c\):</strong><br/>
+          $$\\frac{\\partial L}{\\partial c} = \\sum_{t=1}^{3} W_c^T \\left( \\delta_{s,t} \\odot (1 - s_t^2) \\right)$$
+          <small style="color:var(--text-muted)">*This gradient flows backwards across the context bridge to update Encoder weights!*</small>
         </div>
       `);
     }
@@ -456,7 +473,7 @@
 
   function resetAll() {
     clearAll();
-    updateMath("Select a step below to view exact forward matrix multiplications or backpropagation chain-rule derivations.");
+    updateMath("Select a decoder step below to view exact forward matrix multiplications or backpropagation chain-rule derivations for Machine Translation.");
   }
 </script>
 </body>
