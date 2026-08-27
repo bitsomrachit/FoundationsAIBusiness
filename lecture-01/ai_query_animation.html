@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Data Center Query Journey: Tokenization to GPU Parallel Compute</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: #111827;
+            --card-border: #1f2937;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            max-width: 900px;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        /* Container & Stepper */
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stepper-nav {
+            display: flex;
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .step-tab {
+            flex: 1;
+            padding: 1.2rem 0.8rem;
+            text-align: center;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border-bottom: 3px solid transparent;
+        }
+
+        .step-tab.active {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.08);
+        }
+
+        .step-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #374151;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        .step-tab.active .step-number {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+
+        /* Display Area */
+        .stage-area {
+            min-height: 480px;
+            padding: 2.5rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .step-content {
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .step-content.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Step 1 Styles */
+        .input-badge {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--accent-amber);
+            color: var(--accent-amber);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .query-box {
+            background: #1e293b;
+            border: 2px dashed var(--accent-blue);
+            padding: 1.2rem 2rem;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .tokens-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .token-chip {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid var(--accent-purple);
+            color: #ddd6fe;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            transition: all 0.4s ease;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .vector-matrix {
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            font-family: monospace;
+            color: var(--accent-cyan);
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Step 2 Styles */
+        .flow-architecture {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 2rem;
+            gap: 1rem;
+        }
+
+        .arch-node {
+            background: #1e293b;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .arch-node.active-node {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .arch-node h4 {
+            color: var(--accent-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .arch-node p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .fiber-pipe {
+            flex: 1;
+            height: 6px;
+            background: #374151;
+            position: relative;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .data-pulse {
+            position: absolute;
+            top: 0;
+            left: -30%;
+            width: 30%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            animation: pulseTravel 2s infinite linear;
+        }
+
+        @keyframes pulseTravel {
+            0% { left: -30%; }
+            100% { left: 100%; }
+        }
+
+        /* Step 3 Styles */
+        .datacenter-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .rack-card {
+            background: #172033;
+            border: 1px solid #2d3748;
+            border-radius: 10px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .gpu-chip {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-family: monospace;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .gpu-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+            animation: blink 1.5s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+        }
+
+        /* Step 4 Styles */
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .comp-card {
+            background: #172033;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .comp-card.gpu {
+            border-color: var(--accent-green);
+        }
+
+        .comp-card.cpu {
+            border-color: var(--accent-amber);
+        }
+
+        .comp-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .comp-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .core-grid-cpu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .cpu-core {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent-amber);
+            height: 60px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--accent-amber);
+            font-size: 0.9rem;
+        }
+
+        .core-grid-gpu {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .gpu-tiny-core {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--accent-green);
+            height: 22px;
+            border-radius: 3px;
+            animation: gpuPulse 1s infinite alternate;
+        }
+
+        @keyframes gpuPulse {
+            0% { background: rgba(16, 185, 129, 0.1); }
+            100% { background: rgba(16, 185, 129, 0.6); }
+        }
+
+        /* Description Box */
+        .desc-box {
+            background: #0f172a;
+            border-top: 1px solid var(--card-border);
+            padding: 1.2rem 2.5rem;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .desc-box strong {
+            color: var(--accent-cyan);
+        }
+
+        /* Controls Footer */
+        .controls-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2.5rem;
+            background: rgba(15, 23, 42, 0.9);
+            border-top: 1px solid var(--card-border);
+        }
+
+        .btn {
+            background: #374151;
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.4rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #4b5563;
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #22d3ee;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AI Data Center Query Journey</h1>
+        <p>Walkthrough of Min 6–10: From Prompt Tokenization to GPU Parallel Compute</p>
+    </header>
+
+    <div class="container">
+        <!-- Navigation Stepper -->
+        <div class="stepper-nav">
+            <button class="step-tab active" onclick="goToStep(1)">
+                <span class="step-number">1</span> Tokenization & Vectors
+            </button>
+            <button class="step-tab" onclick="goToStep(2)">
+                <span class="step-number">2</span> API & Gateway Relay
+            </button>
+            <button class="step-tab" onclick="goToStep(3)">
+                <span class="step-number">3</span> AI Data Center
+            </button>
+            <button class="step-tab" onclick="goToStep(4)">
+                <span class="step-number">4</span> GPU Parallel Compute
+            </button>
+        </div>
+
+        <!-- Stage Area -->
+        <div class="stage-area">
+            
+            <!-- STEP 1 -->
+            <div class="step-content active" id="step-1">
+                <div class="input-badge">
+                    Input Query (Note: Prompt could also be images, audio, or raw numerical data)
+                </div>
+                
+                <div class="query-box">
+                    "What should I make for dinner with chicken and rice?"
+                </div>
+
+                <div class="tokens-grid" id="tokens-container">
+                    <!-- Javascript populates tokens dynamically -->
+                </div>
+
+                <div class="vector-matrix" id="vector-container">
+                    <strong>Numerical Embeddings / Vectors:</strong><br>
+                    [ 0.042, -0.891, 0.312, 0.764, -0.115, 0.952, 0.204, ... ]
+                </div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="step-content" id="step-2">
+                <div class="flow-architecture">
+                    <div class="arch-node active-node">
+                        <h4>Client Application</h4>
+                        <p>User App / Browser</p>
+                        <p style="margin-top:0.5rem; font-family:monospace; color:var(--accent-amber);">POST /v1/chat</p>
+                    </div>
+
+                    <div class="fiber-pipe">
+                        <div class="data-pulse"></div>
+                    </div>
+
+                    <div class="arch-node active-node">
+                        <h4>API Gateway</h4>
+                        <p>Receiving Desk</p>
+                        <p style="margin-top:0.5rem; color:var(--text-muted);">Auth & Rate Limits</p>
+                    </div>
+
+                    <div class="fiber-pipe">
+                        <div class="data-pulse"></div>
+                    </div>
+
+                    <div class="arch-node active-node">
+                        <h4>Fiber Network</h4>
+                        <p>Light Signals in Glass</p>
+                        <p style="margin-top:0.5rem; color:var(--accent-cyan);">2/3 Speed of Light</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="step-content" id="step-3">
+                <h3 style="margin-bottom: 0.5rem; color: var(--accent-cyan);">Inside the AI Data Center Facility</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    Gigawatt-scale infrastructure housing thousands of liquid-cooled GPU clusters.
+                </p>
+
+                <div class="datacenter-grid">
+                    <div class="rack-card">
+                        <div style="font-weight:bold; font-size:0.9rem; color:var(--accent-cyan);">Server Rack 01 (NVL72)</div>
+                        <div class="gpu-chip"><span>GPU 0 - 8 (Nvidia GB200)</span> <div class="gpu-status"></div></div>
+                        <div class="gpu-chip"><span>GPU 9 - 16 (Nvidia GB200)</span> <div class="gpu-status"></div></div>
+                        <div class="gpu-chip"><span>High Bandwidth Memory (HBM3e)</span> <div class="gpu-status"></div></div>
+                    </div>
+                    <div class="rack-card">
+                        <div style="font-weight:bold; font-size:0.9rem; color:var(--accent-cyan);">Server Rack 02 (NVL72)</div>
+                        <div class="gpu-chip"><span>GPU 17 - 24 (Nvidia GB200)</span> <div class="gpu-status"></div></div>
+                        <div class="gpu-chip"><span>GPU 25 - 32 (Nvidia GB200)</span> <div class="gpu-status"></div></div>
+                        <div class="gpu-chip"><span>High Bandwidth Memory (HBM3e)</span> <div class="gpu-status"></div></div>
+                    </div>
+                    <div class="rack-card">
+                        <div style="font-weight:bold; font-size:0.9rem; color:var(--accent-cyan);">Networking Interconnect</div>
+                        <div class="gpu-chip" style="border-color:var(--accent-purple); color:var(--accent-purple);">
+                            <span>NVLink Switch Tray (1.8TB/s)</span> <div class="gpu-status" style="background:var(--accent-purple); box-shadow:0 0 8px var(--accent-purple);"></div>
+                        </div>
+                        <div class="gpu-chip" style="border-color:var(--accent-purple); color:var(--accent-purple);">
+                            <span>Optical Transceivers</span> <div class="gpu-status" style="background:var(--accent-purple); box-shadow:0 0 8px var(--accent-purple);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="step-content" id="step-4">
+                <div class="comparison-container">
+                    <div class="comp-card cpu">
+                        <div class="comp-title">
+                            CPU Architecture
+                            <span style="font-size:0.8rem; color:var(--accent-amber);">"Head Chef"</span>
+                        </div>
+                        <div class="comp-subtitle">Optimized for complex, sequential tasks with a few fast cores.</div>
+                        <div class="core-grid-cpu">
+                            <div class="cpu-core">Core 1</div>
+                            <div class="cpu-core">Core 2</div>
+                            <div class="cpu-core">Core 3</div>
+                            <div class="cpu-core">Core 4</div>
+                        </div>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Processes calculations sequentially, one by one.</p>
+                    </div>
+
+                    <div class="comp-card gpu">
+                        <div class="comp-title">
+                            GPU Architecture
+                            <span style="font-size:0.8rem; color:var(--accent-green);">"10,000 Line Cooks"</span>
+                        </div>
+                        <div class="comp-subtitle">Thousands of smaller cores processing identical math simultaneously.</div>
+                        <div class="core-grid-gpu">
+                            <!-- 32 mini cores representing parallel processing -->
+                            <div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div>
+                            <div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div>
+                            <div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div>
+                            <div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div>
+                            <div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div>
+                            <div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div><div class="gpu-tiny-core"></div>
+                        </div>
+                        <p style="font-size:0.85rem; color:var(--accent-green);">Executes trillions of parallel multiply-accumulate (MAC) operations per second.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Dynamic Description Box -->
+        <div class="desc-box" id="step-description">
+            <!-- Populated via Javascript -->
+        </div>
+
+        <!-- Footer Controls -->
+        <div class="controls-footer">
+            <button class="btn" id="prev-btn" onclick="changeStep(-1)" disabled>Previous</button>
+            <button class="btn btn-primary" id="next-btn" onclick="changeStep(1)">Next Step</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        const descriptions = {
+            1: "<strong>Step 1: Input & Tokenization</strong><br>Whether the input is natural language text, images, or numerical data, the AI system chops the input into discrete chunks called <em>tokens</em> (roughly 3/4 of a word). These tokens are then mapped into high-dimensional numerical vectors (embeddings) so mathematical operations can be performed.",
+            2: "<strong>Step 2: API Gateway & Network Transmission</strong><br>The numerical vectors hit an API Gateway (Application Layer) which manages rate limits, authentication, and safety filters. The request is then converted into pulses of light and transmitted over strands of fiber optic cable at 2/3 the speed of light to the remote AI data center.",
+            3: "<strong>Step 3: AI Data Center Cluster</strong><br>The query arrives at an ultra-dense data center facility requiring massive power and liquid cooling infrastructure. Inside, thousands of GPUs are interconnected using high-speed switches (e.g. NVLink / Ethernet) and stacked with High-Bandwidth Memory (HBM).",
+            4: "<strong>Step 4: GPU Parallel Compute vs CPU</strong><br>While a traditional CPU functions like a 'Head Chef' performing complex tasks one step at a time, a GPU acts like thousands of 'Line Cooks' working simultaneously. Because neural network matrix math requires billions of identical additions and multiplications (FLOPs), GPUs process these calculations in massive parallel bursts."
+        };
+
+        const tokens = ["What", " should", " I", " make", " for", " dinner", " with", " chicken", " and", " rice?"];
+
+        function initTokenAnimation() {
+            const container = document.getElementById('tokens-container');
+            const vectorContainer = document.getElementById('vector-container');
+            container.innerHTML = '';
+            vectorContainer.style.opacity = '0';
+
+            tokens.forEach((t, i) => {
+                const chip = document.createElement('div');
+                chip.className = 'token-chip';
+                chip.innerText = t;
+                container.appendChild(chip);
+
+                setTimeout(() => {
+                    chip.style.opacity = '1';
+                    chip.style.transform = 'scale(1)';
+                }, i * 150);
+            });
+
+            setTimeout(() => {
+                vectorContainer.style.opacity = '1';
+            }, tokens.length * 150 + 200);
+        }
+
+        function updateStepView() {
+            // Update tabs
+            document.querySelectorAll('.step-tab').forEach((tab, idx) => {
+                tab.classList.toggle('active', idx + 1 === currentStep);
+            });
+
+            // Update step content panels
+            document.querySelectorAll('.step-content').forEach((panel, idx) => {
+                panel.classList.toggle('active', idx + 1 === currentStep);
+            });
+
+            // Update description text
+            document.getElementById('step-description').innerHTML = descriptions[currentStep];
+
+            // Update buttons
+            document.getElementById('prev-btn').disabled = (currentStep === 1);
+            const nextBtn = document.getElementById('next-btn');
+            if (currentStep === 4) {
+                nextBtn.innerText = 'Restart Walkthrough';
+            } else {
+                nextBtn.innerText = 'Next Step';
+            }
+
+            // Trigger animations specific to steps
+            if (currentStep === 1) {
+                initTokenAnimation();
+            }
+        }
+
+        function changeStep(delta) {
+            currentStep += delta;
+            if (currentStep > 4) currentStep = 1;
+            if (currentStep < 1) currentStep = 1;
+            updateStepView();
+        }
+
+        function goToStep(step) {
+            currentStep = step;
+            updateStepView();
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            updateStepView();
+        };
+    </script>
+</body>
+</html>
