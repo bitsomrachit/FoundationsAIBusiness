@@ -7,302 +7,301 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0a0e14;
-    --bg-grid: rgba(255,255,255,0.025);
-    --panel:#111826;
-    --panel-2:#0d1420;
-    --border:#1d2635;
-    --text:#e7ebf3;
-    --muted:#8a94a6;
-    --cyan:#3ee6d8;
-    --violet:#9d7bff;
-    --amber:#ffb454;
-    --green:#4ade9c;
-    --shadow: 0 30px 60px -20px rgba(0,0,0,0.7);
+  :root {
+    --bg: #0a0e14;
+    --bg-grid: rgba(255, 255, 255, 0.025);
+    --panel: #111826;
+    --panel-2: #0d1420;
+    --border: #1d2635;
+    --text: #e7ebf3;
+    --muted: #8a94a6;
+    --cyan: #3ee6d8;
+    --violet: #9d7bff;
+    --amber: #ffb454;
+    --green: #4ade9c;
+    --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
   }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  html,body{height:100%;}
-  body{
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  html, body { 
+    height: 100vh;
+    overflow: hidden; 
+  }
+
+  body {
     background:
-      radial-gradient(circle at 15% 0%, rgba(157,123,255,0.08), transparent 45%),
-      radial-gradient(circle at 85% 100%, rgba(62,230,216,0.07), transparent 45%),
+      radial-gradient(circle at 15% 0%, rgba(157, 123, 255, 0.08), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(62, 230, 216, 0.07), transparent 40%),
       var(--bg);
-    background-attachment:fixed;
-    color:var(--text);
-    font-family:'Inter', sans-serif;
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:2.5rem 1.25rem 3rem;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1rem;
   }
-  body::before{
-    content:"";
-    position:fixed; inset:0;
+
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
     background-image:
       linear-gradient(var(--bg-grid) 1px, transparent 1px),
       linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
-    background-size:42px 42px;
-    pointer-events:none;
-    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    background-size: 36px 36px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
   }
 
-  header{ text-align:center; max-width:720px; margin-bottom:1.9rem; position:relative; z-index:1;}
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase;
-    color:var(--cyan); margin-bottom:0.7rem; font-weight:500;
+  header { text-align: center; max-width: 720px; position: relative; z-index: 1; margin-bottom: 0.5rem; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 0.25rem; font-weight: 500;
   }
-  header h1{
-    font-family:'Space Grotesk', sans-serif;
-    font-size:clamp(1.7rem, 3.4vw, 2.4rem);
-    font-weight:700;
-    letter-spacing:-0.01em;
-    margin-bottom:0.6rem;
+  header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.2rem;
   }
-  header p{ color:var(--muted); font-size:1rem; line-height:1.5; }
+  header p { color: var(--muted); font-size: 0.85rem; line-height: 1.3; }
 
-  /* ---------- Journey rail ---------- */
-  .rail-wrap{
-    width:100%; max-width:980px;
-    margin-bottom:1.4rem;
-    position:relative; z-index:1;
+  /* ---------- Journey Rail ---------- */
+  .rail-wrap {
+    width: 100%; max-width: 920px;
+    position: relative; z-index: 1;
+    margin-bottom: 0.6rem;
   }
-  .rail{
-    display:flex; align-items:center; justify-content:space-between;
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:1.1rem 1.6rem;
+  .rail {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.6rem 1.2rem;
     box-shadow: var(--shadow);
   }
-  .rail-node{
-    display:flex; flex-direction:column; align-items:center; gap:0.5rem;
-    cursor:pointer; flex:0 0 auto; position:relative;
-    background:none; border:none; color:inherit; font-family:inherit;
+  .rail-node {
+    display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+    cursor: pointer; flex: 0 0 auto; position: relative;
+    background: none; border: none; color: inherit; font-family: inherit;
   }
-  .rail-dot{
-    width:42px; height:42px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    background:var(--panel-2);
-    border:1.5px solid var(--border);
-    color:var(--muted);
-    transition: all 0.4s ease;
+  .rail-dot {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--panel-2);
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    transition: all 0.3s ease;
   }
-  .rail-dot svg{ width:20px; height:20px; }
-  .rail-label{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:0.68rem; color:var(--muted);
-    letter-spacing:0.02em; white-space:nowrap;
-    transition: color 0.4s ease;
+  .rail-dot svg { width: 16px; height: 16px; }
+  .rail-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem; color: var(--muted);
+    letter-spacing: 0.02em; white-space: nowrap;
+    transition: color 0.3s ease;
   }
-  .rail-node.done .rail-dot{ border-color:var(--green); color:var(--green); background:rgba(74,222,156,0.08);}
-  .rail-node.done .rail-label{ color:var(--green); }
-  .rail-node.active .rail-dot{
-    border-color:var(--cyan); color:var(--cyan);
-    background:rgba(62,230,216,0.12);
-    box-shadow:0 0 0 5px rgba(62,230,216,0.09);
-    transform:scale(1.08);
+  .rail-node.done .rail-dot { border-color: var(--green); color: var(--green); background: rgba(74, 222, 156, 0.08); }
+  .rail-node.done .rail-label { color: var(--green); }
+  .rail-node.active .rail-dot {
+    border-color: var(--cyan); color: var(--cyan);
+    background: rgba(62, 230, 216, 0.12);
+    box-shadow: 0 0 0 4px rgba(62, 230, 216, 0.09);
+    transform: scale(1.05);
   }
-  .rail-node.active .rail-label{ color:var(--cyan); font-weight:600; }
-  .rail-line{
-    flex:1 1 auto; height:2px; background:var(--border); margin:0 0.4rem;
-    position:relative; top:-13px; border-radius:2px; overflow:hidden;
+  .rail-node.active .rail-label { color: var(--cyan); font-weight: 600; }
+  .rail-line {
+    flex: 1 1 auto; height: 2px; background: var(--border); margin: 0 0.4rem;
+    position: relative; top: -10px; border-radius: 2px; overflow: hidden;
   }
-  .rail-line-fill{
-    position:absolute; inset:0 100% 0 0;
-    background:linear-gradient(90deg, var(--green), var(--cyan));
-    transition: right 0.5s ease;
+  .rail-line-fill {
+    position: absolute; inset: 0 100% 0 0;
+    background: linear-gradient(90deg, var(--green), var(--cyan));
+    transition: right 0.4s ease;
   }
 
   /* ---------- Container ---------- */
-  .container{
-    width:100%; max-width:980px;
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:20px;
+  .container {
+    width: 100%; max-width: 920px;
+    flex: 1 1 auto;
+    max-height: calc(100vh - 180px);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
     box-shadow: var(--shadow);
-    overflow:hidden;
-    position:relative; z-index:1;
-  }
-  .progress-track{ height:3px; width:100%; background:var(--border); }
-  .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--cyan), var(--violet)); }
-  .progress-fill.animating{ transition: width linear; }
-
-  .stage{
-    min-height:440px;
-    padding:2.4rem 2.6rem 1.6rem;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-  }
-  .step-content{ display:none; width:100%; }
-  .step-content.active{ display:flex; flex-direction:column; align-items:center; animation:rise 0.5s ease; }
-  @keyframes rise{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
-
-  .step-kicker{
-    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.1em;
-    text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem;
-  }
-  .step-title{
-    font-family:'Space Grotesk', sans-serif; font-size:1.5rem; font-weight:700;
-    margin-bottom:1.6rem; text-align:center;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    position: relative; z-index: 1;
   }
 
-  /* ---------- Step 1: tokenization ---------- */
-  .device{
-    background:var(--panel-2); border:1px solid var(--border); border-radius:14px;
-    padding:1.6rem 2rem; width:min(560px, 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  .stage {
+    flex: 1;
+    padding: 1.2rem 1.8rem;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow-y: auto;
   }
-  .device-bar{ display:flex; gap:6px; margin-bottom:1rem; }
-  .device-bar span{ width:9px; height:9px; border-radius:50%; background:var(--border); }
-  .query-line{
-    font-family:'IBM Plex Mono', monospace; font-size:1.05rem; color:var(--text);
-    border-left:2px solid var(--amber); padding-left:0.9rem;
-  }
-  .arrow-down{ margin:1.1rem 0; color:var(--muted); font-size:1.3rem; opacity:0.6;}
-  .tokens-grid{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:1.1rem; min-height:42px;}
-  .token-chip{
-    background:rgba(157,123,255,0.12); border:1px solid var(--violet); color:#e3d9ff;
-    padding:0.45rem 0.85rem; border-radius:8px; font-family:'IBM Plex Mono',monospace;
-    font-size:0.92rem; opacity:0; transform:translateY(6px) scale(0.9);
-    transition: all 0.35s cubic-bezier(.2,.8,.3,1.2);
-  }
-  .token-chip.show{ opacity:1; transform:translateY(0) scale(1); }
-  .vector-box{
-    background:var(--panel-2); border:1px solid var(--border); border-radius:10px;
-    padding:0.85rem 1.3rem; font-family:'IBM Plex Mono', monospace; color:var(--cyan);
-    font-size:0.88rem; opacity:0; transition:opacity 0.5s ease; text-align:center;
-  }
-  .vector-box.show{ opacity:1; }
-  .vector-box b{ display:block; color:var(--text); font-family:'Inter',sans-serif; font-size:0.75rem; margin-bottom:0.35rem; font-weight:600;}
+  .step-content { display: none; width: 100%; }
+  .step-content.active { display: flex; flex-direction: column; align-items: center; animation: rise 0.4s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* ---------- Step 2: relay ---------- */
-  .flow{ display:flex; align-items:center; width:100%; gap:0.6rem; margin-top:0.4rem;}
-  .flow-node{
-    flex:1; background:var(--panel-2); border:1px solid var(--border); border-radius:12px;
-    padding:1.3rem 1rem; text-align:center;
+  .step-kicker {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem;
   }
-  .flow-node .ic{ color:var(--cyan); margin-bottom:0.55rem; }
-  .flow-node .ic svg{ width:26px; height:26px; }
-  .flow-node h4{ font-family:'Space Grotesk',sans-serif; font-size:0.95rem; margin-bottom:0.3rem;}
-  .flow-node p{ font-size:0.78rem; color:var(--muted); line-height:1.4;}
-  .flow-node .tag{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--amber); margin-top:0.4rem; display:block;}
-  .pipe{ flex:0 0 46px; height:3px; background:var(--border); position:relative; border-radius:2px; overflow:hidden;}
-  .pulse{
-    position:absolute; top:0; left:-40%; width:40%; height:100%;
-    background:linear-gradient(90deg, transparent, var(--cyan), transparent);
-    animation:travel 1.6s infinite linear;
-  }
-  @keyframes travel{ 0%{left:-40%;} 100%{left:100%;} }
-  .speed-note{
-    margin-top:1.4rem; font-family:'IBM Plex Mono', monospace; font-size:0.82rem;
-    color:var(--cyan); text-align:center;
+  .step-title {
+    font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700;
+    margin-bottom: 1rem; text-align: center;
   }
 
-  /* ---------- Step 3: data center ---------- */
-  .dc-sub{ color:var(--muted); font-size:0.85rem; margin:-1rem 0 1.3rem; text-align:center;}
-  .dc-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; width:100%;}
-  .rack{
-    background:var(--panel-2); border:1px solid var(--border); border-radius:12px;
-    padding:1rem; display:flex; flex-direction:column; gap:8px;
+  /* ---------- Step 1: Tokenization ---------- */
+  .device {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem 1.4rem; width: min(520px, 100%);
   }
-  .rack-title{ font-family:'Space Grotesk',sans-serif; font-size:0.85rem; color:var(--cyan); margin-bottom:2px;}
-  .gpu-row{
-    background:rgba(74,222,156,0.08); border:1px solid var(--green); color:var(--green);
-    padding:0.45rem 0.6rem; border-radius:7px; font-family:'IBM Plex Mono',monospace;
-    font-size:0.74rem; display:flex; align-items:center; justify-content:space-between;
+  .device-bar { display: flex; gap: 5px; margin-bottom: 0.6rem; }
+  .device-bar span { width: 7px; height: 7px; border-radius: 50%; background: var(--border); }
+  .query-line {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.9rem; color: var(--text);
+    border-left: 2px solid var(--amber); padding-left: 0.75rem;
   }
-  .gpu-row.net{ background:rgba(157,123,255,0.1); border-color:var(--violet); color:#cdbcff;}
-  .dot-blink{ width:7px; height:7px; border-radius:50%; background:currentColor; box-shadow:0 0 7px currentColor;
-    animation:blink 1.4s infinite alternate;}
-  @keyframes blink{ from{opacity:0.35;} to{opacity:1;} }
+  .arrow-down { margin: 0.6rem 0; color: var(--muted); font-size: 1.1rem; opacity: 0.6; }
+  .tokens-grid { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 0.8rem; }
+  .token-chip {
+    background: rgba(157, 123, 255, 0.12); border: 1px solid var(--violet); color: #e3d9ff;
+    padding: 0.35rem 0.65rem; border-radius: 6px; font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem; opacity: 0; transform: translateY(4px);
+    transition: all 0.3s ease;
+  }
+  .token-chip.show { opacity: 1; transform: translateY(0); }
+  .vector-box {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.65rem 1rem; font-family: 'IBM Plex Mono', monospace; color: var(--cyan);
+    font-size: 0.78rem; opacity: 0; transition: opacity 0.4s ease; text-align: center;
+  }
+  .vector-box.show { opacity: 1; }
+  .vector-box b { display: block; color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.7rem; margin-bottom: 0.2rem; font-weight: 600; }
 
-  /* ---------- Step 4: CPU vs GPU ---------- */
-  .cmp{ display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; width:100%;}
-  .cmp-card{ background:var(--panel-2); border:1px solid var(--border); border-radius:14px; padding:1.3rem;}
-  .cmp-card.cpu{ border-color:rgba(255,180,84,0.5);}
-  .cmp-card.gpu{ border-color:rgba(74,222,156,0.5);}
-  .cmp-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:0.2rem;}
-  .cmp-head h4{ font-family:'Space Grotesk',sans-serif; font-size:1.05rem;}
-  .cmp-head span{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--muted);}
-  .cmp-sub{ font-size:0.78rem; color:var(--muted); margin-bottom:1rem; line-height:1.4;}
-  .cpu-cores{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:0.8rem;}
-  .cpu-core{
-    height:44px; border-radius:7px; background:rgba(255,180,84,0.08); border:1px solid var(--amber);
-    display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace;
-    font-size:0.72rem; color:var(--amber); opacity:0.35;
-    animation:cpu-chase 3.2s infinite;
+  /* ---------- Step 2: API & Hyperscaler Relay ---------- */
+  .relay-flow { display: flex; align-items: center; width: 100%; gap: 0.5rem; margin-top: 0.2rem; }
+  .relay-node {
+    flex: 1; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem 0.75rem; text-align: center;
   }
-  .cpu-core:nth-child(1){ animation-delay:0s; }
-  .cpu-core:nth-child(2){ animation-delay:0.8s; }
-  .cpu-core:nth-child(3){ animation-delay:1.6s; }
-  .cpu-core:nth-child(4){ animation-delay:2.4s; }
-  @keyframes cpu-chase{
-    0%{ opacity:0.35; } 8%{ opacity:1; background:rgba(255,180,84,0.28);} 22%{opacity:0.35; background:rgba(255,180,84,0.08);} 100%{opacity:0.35;}
+  .relay-node .ic { color: var(--cyan); margin-bottom: 0.4rem; }
+  .relay-node .ic svg { width: 22px; height: 22px; }
+  .relay-node h4 { font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; margin-bottom: 0.2rem; }
+  .relay-node p { font-size: 0.72rem; color: var(--muted); line-height: 1.3; }
+  .relay-node .tag { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--amber); margin-top: 0.3rem; display: block; }
+  .pipe { flex: 0 0 32px; height: 2px; background: var(--border); position: relative; border-radius: 2px; }
+  .pulse {
+    position: absolute; top: 0; left: -40%; width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    animation: travel 1.6s infinite linear;
   }
-  .gpu-cores{ display:grid; grid-template-columns:repeat(8,1fr); gap:6px; margin-bottom:0.8rem;}
-  .gpu-core{
-    height:18px; border-radius:4px; background:rgba(74,222,156,0.12); border:1px solid var(--green);
-    animation: gpu-pulse 1.1s infinite alternate;
-  }
-  @keyframes gpu-pulse{ 0%{ background:rgba(74,222,156,0.12);} 100%{ background:rgba(74,222,156,0.65);} }
-  .cmp-foot{ font-size:0.78rem; line-height:1.4; }
-  .cmp-foot.cpu-note{ color:var(--muted); }
-  .cmp-foot.gpu-note{ color:var(--green); }
+  @keyframes travel { 0% { left: -40%; } 100% { left: 100%; } }
 
-  /* ---------- Description ---------- */
-  .desc{
-    border-top:1px solid var(--border);
-    background:var(--panel-2);
-    padding:1.15rem 2.6rem;
-    font-size:0.92rem; line-height:1.55; color:var(--text);
+  /* ---------- Step 3: 3-Layer Tech Stack ---------- */
+  .stack-container { display: flex; flex-direction: column; gap: 0.65rem; width: 100%; max-width: 680px; }
+  .stack-layer {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.85rem 1.2rem; display: flex; align-items: center; justify-content: space-between;
+    position: relative; transition: border-color 0.3s ease;
   }
-  .desc b{ color:var(--cyan); }
+  .stack-layer.top { border-color: rgba(62, 230, 216, 0.4); }
+  .stack-layer.mid { border-color: rgba(255, 180, 84, 0.4); }
+  .stack-layer.bot { border-color: rgba(157, 123, 255, 0.4); }
+  .layer-badge {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; padding: 0.25rem 0.5rem;
+    border-radius: 4px; text-transform: uppercase; font-weight: 600; min-width: 90px; text-align: center;
+  }
+  .top .layer-badge { background: rgba(62, 230, 216, 0.15); color: var(--cyan); }
+  .mid .layer-badge { background: rgba(255, 180, 84, 0.15); color: var(--amber); }
+  .bot .layer-badge { background: rgba(157, 123, 255, 0.15); color: var(--violet); }
+  .layer-info { flex: 1; margin: 0 1rem; }
+  .layer-info h4 { font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; margin-bottom: 0.15rem; }
+  .layer-info p { font-size: 0.74rem; color: var(--muted); }
+  .layer-examples { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--text); opacity: 0.85; text-align: right; }
 
-  /* ---------- Footer controls ---------- */
-  .controls{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:0.9rem 1.6rem;
-    background:rgba(10,14,20,0.7);
-    border-top:1px solid var(--border);
+  /* ---------- Step 4: CPU vs GPU Compute ---------- */
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; }
+  .cmp-card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .cmp-card.cpu { border-color: rgba(255, 180, 84, 0.4); }
+  .cmp-card.gpu { border-color: rgba(74, 222, 156, 0.4); }
+  .cmp-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.2rem; }
+  .cmp-head h4 { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; }
+  .cmp-head span { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); }
+  .cmp-sub { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.6rem; line-height: 1.3; }
+  .cpu-cores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 0.6rem; }
+  .cpu-core {
+    height: 32px; border-radius: 5px; background: rgba(255, 180, 84, 0.08); border: 1px solid var(--amber);
+    display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; color: var(--amber);
   }
-  .ctrl-group{ display:flex; gap:0.5rem; }
-  .btn{
-    background:var(--panel-2); color:var(--text); border:1px solid var(--border);
-    padding:0.55rem 1.1rem; border-radius:9px; font-family:'Inter',sans-serif;
-    font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.2s ease;
-    display:flex; align-items:center; gap:0.4rem;
+  .gpu-cores { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 0.6rem; }
+  .gpu-core {
+    height: 14px; border-radius: 3px; background: rgba(74, 222, 156, 0.15); border: 1px solid var(--green);
   }
-  .btn:hover{ border-color:var(--cyan); color:var(--cyan); }
-  .btn:disabled{ opacity:0.35; cursor:not-allowed; }
-  .btn.play{ background:var(--cyan); color:#06141a; border-color:var(--cyan);}
-  .btn.play:hover{ background:#5df0e3; color:#06141a; }
-  .step-count{ font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:var(--muted);}
+  .cmp-foot { font-size: 0.72rem; line-height: 1.3; }
+  .cmp-foot.cpu-note { color: var(--muted); }
+  .cmp-foot.gpu-note { color: var(--green); }
 
-  @media (max-width:720px){
-    .stage{ padding:1.8rem 1.2rem 1.2rem; }
-    .desc{ padding:1rem 1.4rem; }
-    .rail-label{ display:none; }
-    .flow{ flex-direction:column; }
-    .pipe{ width:3px; height:26px; flex-basis:26px; }
-    .pulse{ left:0; top:-40%; width:100%; height:40%; animation:travel-v 1.6s infinite linear;}
-    @keyframes travel-v{ 0%{top:-40%;} 100%{top:100%;} }
-    .dc-grid{ grid-template-columns:1fr; }
-    .cmp{ grid-template-columns:1fr; }
-  }
+  /* ---------- Step 5: Training vs Inference ---------- */
+  .ti-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; }
+  .ti-card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .ti-card.train { border-color: rgba(157, 123, 255, 0.4); }
+  .ti-card.infer { border-color: rgba(62, 230, 216, 0.4); }
+  .ti-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; color: var(--text); margin-bottom: 0.3rem; }
+  .ti-tag { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--violet); margin-bottom: 0.6rem; display: block; }
+  .ti-card.infer .ti-tag { color: var(--cyan); }
+  .ti-list { list-style: none; font-size: 0.75rem; color: var(--muted); display: flex; flex-direction: column; gap: 0.4rem; }
+  .ti-list li b { color: var(--text); }
 
-  @media (prefers-reduced-motion: reduce){
-    *{ animation:none !important; transition:none !important; }
+  /* ---------- Description Footer ---------- */
+  .desc {
+    border-top: 1px solid var(--border);
+    background: var(--panel-2);
+    padding: 0.75rem 1.4rem;
+    font-size: 0.8rem; line-height: 1.45; color: var(--text);
+  }
+  .desc b { color: var(--cyan); }
+
+  /* ---------- Footer Controls ---------- */
+  .controls {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.65rem 1.4rem;
+    background: rgba(10, 14, 20, 0.8);
+    border-top: 1px solid var(--border);
+  }
+  .ctrl-group { display: flex; gap: 0.5rem; }
+  .btn {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    padding: 0.4rem 0.9rem; border-radius: 7px; font-family: 'Inter', sans-serif;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+  }
+  .btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn.primary { background: var(--cyan); color: #06141a; border-color: var(--cyan); }
+  .btn.primary:hover { background: #5df0e3; color: #06141a; }
+  .step-count { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+
+  @media (max-width: 680px) {
+    .stage { padding: 1rem 0.8rem; }
+    .rail-label { display: none; }
+    .relay-flow, .cmp, .ti-grid { grid-template-columns: 1fr; flex-direction: column; }
+    .pipe { width: 2px; height: 16px; flex-basis: 16px; margin: 0 auto; }
+    .stack-layer { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+    .layer-examples { text-align: left; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="eyebrow">Under the Hood</div>
+  <div class="eyebrow">Interactive Lecture Visualizer</div>
   <h1>The Journey of an AI Query</h1>
-  <p>From the moment you hit send, to thousands of chips computing your answer in parallel.</p>
+  <p>From your prompt down through the 3-layer architecture to silicon hardware compute.</p>
 </header>
 
 <div class="rail-wrap">
@@ -310,110 +309,139 @@
 </div>
 
 <div class="container">
-  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-
   <div class="stage">
 
     <!-- STEP 1 -->
     <div class="step-content" id="step-1">
-      <div class="step-kicker">Step 1 of 4</div>
+      <div class="step-kicker">Step 1 of 5 &middot; Top Layer (Application)</div>
       <div class="step-title">Your Question Becomes Numbers</div>
       <div class="device">
         <div class="device-bar"><span></span><span></span><span></span></div>
-        <div class="query-line" id="query-text">"What should I make for dinner with chicken and rice?"</div>
+        <div class="query-line">"What should I make for dinner with chicken and rice?"</div>
       </div>
       <div class="arrow-down">&#8595;</div>
       <div class="tokens-grid" id="tokens-container"></div>
       <div class="vector-box" id="vector-box">
-        <b>Each token becomes a vector</b>
+        <b>Token Embedding Vectors</b>
         [ 0.04, &minus;0.89, 0.31, 0.76, &minus;0.12, 0.95, &hellip; ]
       </div>
     </div>
 
     <!-- STEP 2 -->
     <div class="step-content" id="step-2">
-      <div class="step-kicker">Step 2 of 4</div>
-      <div class="step-title">The Trip to the Data Center</div>
-      <div class="flow">
-        <div class="flow-node">
+      <div class="step-kicker">Step 2 of 5 &middot; Data Transit</div>
+      <div class="step-title">API Payload to Hyperscaler Infrastructure</div>
+      <div class="relay-flow">
+        <div class="relay-node">
           <div class="ic">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
           </div>
-          <h4>Your Device</h4>
-          <p>App or browser</p>
+          <h4>Application Layer</h4>
+          <p>Client serializes payload</p>
           <span class="tag">POST /v1/chat</span>
         </div>
         <div class="pipe"><div class="pulse"></div></div>
-        <div class="flow-node">
+        <div class="relay-node">
           <div class="ic">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7l8-4z"/></svg>
           </div>
           <h4>API Gateway</h4>
-          <p>Checks identity & limits</p>
-          <span class="tag">auth &middot; rate-limit</span>
+          <p>Auth &amp; Load Balancing</p>
+          <span class="tag">TLS &middot; Rate Limiting</span>
         </div>
         <div class="pipe"><div class="pulse"></div></div>
-        <div class="flow-node">
+        <div class="relay-node">
           <div class="ic">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h18M3 12c0-3 4-5 9-5s9 2 9 5-4 5-9 5-9-2-9-5z"/></svg>
           </div>
-          <h4>Fiber Network</h4>
-          <p>Light pulses in glass</p>
-          <span class="tag">&asymp; &#8532; light speed</span>
+          <h4>Hyperscaler Cloud</h4>
+          <p>Fiber optical network</p>
+          <span class="tag">AWS / GCP / Azure</span>
         </div>
       </div>
-      <div class="speed-note">Your request can cross a continent before you finish blinking.</div>
     </div>
 
     <!-- STEP 3 -->
     <div class="step-content" id="step-3">
-      <div class="step-kicker">Step 3 of 4</div>
-      <div class="step-title">Inside the AI Data Center</div>
-      <div class="dc-sub">Gigawatt-scale halls of liquid-cooled GPUs, built to run day and night.</div>
-      <div class="dc-grid">
-        <div class="rack">
-          <div class="rack-title">Rack 01</div>
-          <div class="gpu-row"><span>GPUs 0&ndash;8</span><span class="dot-blink"></span></div>
-          <div class="gpu-row"><span>GPUs 9&ndash;16</span><span class="dot-blink"></span></div>
-          <div class="gpu-row"><span>High-BW Memory</span><span class="dot-blink"></span></div>
+      <div class="step-kicker">Step 3 of 5 &middot; Architectural Mapping</div>
+      <div class="step-title">The 3 Layers of the Tech Stack</div>
+      <div class="stack-container">
+        <div class="stack-layer top">
+          <div class="layer-badge">Top Layer</div>
+          <div class="layer-info">
+            <h4>Application Layer</h4>
+            <p>End-user interfaces, agents, API integrations, and developer tools.</p>
+          </div>
+          <div class="layer-examples">ChatGPT, Claude, Custom Apps</div>
         </div>
-        <div class="rack">
-          <div class="rack-title">Rack 02</div>
-          <div class="gpu-row"><span>GPUs 17&ndash;24</span><span class="dot-blink"></span></div>
-          <div class="gpu-row"><span>GPUs 25&ndash;32</span><span class="dot-blink"></span></div>
-          <div class="gpu-row"><span>High-BW Memory</span><span class="dot-blink"></span></div>
+        <div class="stack-layer mid">
+          <div class="layer-badge">Middle Layer</div>
+          <div class="layer-info">
+            <h4>Hyperscalers &amp; Infrastructure</h4>
+            <p>Cloud compute platforms, model orchestration, networks, &amp; data centers.</p>
+          </div>
+          <div class="layer-examples">AWS, Google Cloud, Azure, OCI</div>
         </div>
-        <div class="rack">
-          <div class="rack-title">Interconnect</div>
-          <div class="gpu-row net"><span>NVLink Switch</span><span class="dot-blink"></span></div>
-          <div class="gpu-row net"><span>Optical Links</span><span class="dot-blink"></span></div>
+        <div class="stack-layer bot">
+          <div class="layer-badge">Bottom Layer</div>
+          <div class="layer-info">
+            <h4>Chip &amp; Hardware Layer</h4>
+            <p>Physical silicon accelerators running parallel matrix math at scale.</p>
+          </div>
+          <div class="layer-examples">NVIDIA H100/B200, Google TPU, AMD</div>
         </div>
       </div>
     </div>
 
     <!-- STEP 4 -->
     <div class="step-content" id="step-4">
-      <div class="step-kicker">Step 4 of 4</div>
-      <div class="step-title">Why GPUs, Not CPUs?</div>
+      <div class="step-kicker">Step 4 of 5 &middot; Bottom Layer (Hardware)</div>
+      <div class="step-title">GPU Compute: Parallel Matrix Math</div>
       <div class="cmp">
         <div class="cmp-card cpu">
-          <div class="cmp-head"><h4>CPU</h4><span>the Head Chef</span></div>
-          <div class="cmp-sub">A few powerful cores. Handles one complex step at a time.</div>
+          <div class="cmp-head"><h4>CPU</h4><span>Sequential Logic</span></div>
+          <div class="cmp-sub">Few powerful cores built for complex step-by-step logic.</div>
           <div class="cpu-cores">
             <div class="cpu-core">C1</div><div class="cpu-core">C2</div><div class="cpu-core">C3</div><div class="cpu-core">C4</div>
           </div>
-          <div class="cmp-foot cpu-note">Works through tasks one after another, in sequence.</div>
+          <div class="cmp-foot cpu-note">Processes operations one after another in sequence.</div>
         </div>
         <div class="cmp-card gpu">
-          <div class="cmp-head"><h4>GPU</h4><span>10,000 line cooks</span></div>
-          <div class="cmp-sub">Thousands of small cores. Same simple math, all at once.</div>
+          <div class="cmp-head"><h4>GPU / TPU</h4><span>Parallel Accelerator</span></div>
+          <div class="cmp-sub">Thousands of efficient cores performing identical tensor math at once.</div>
           <div class="gpu-cores">
             <div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div>
             <div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div>
             <div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div>
             <div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div>
           </div>
-          <div class="cmp-foot gpu-note">Runs trillions of identical calculations in parallel, every second.</div>
+          <div class="cmp-foot gpu-note">Executes trillions of matrix multiplications simultaneously.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-content" id="step-5">
+      <div class="step-kicker">Step 5 of 5 &middot; Core AI Workload Distinctions</div>
+      <div class="step-title">Training vs. Inference</div>
+      <div class="ti-grid">
+        <div class="ti-card train">
+          <div class="ti-title">Model Training</div>
+          <span class="ti-tag">Offline &middot; Months of Compute</span>
+          <ul class="ti-list">
+            <li>&bull; <b>Goal:</b> Learn parameters &amp; weights from huge datasets.</li>
+            <li>&bull; <b>Compute:</b> Tens of thousands of GPUs tied together for months.</li>
+            <li>&bull; <b>Math:</b> Forward pass + Backpropagation (updating weights).</li>
+          </ul>
+        </div>
+        <div class="ti-card infer">
+          <div class="ti-title">Model Inference</div>
+          <span class="ti-tag">Real-Time &middot; Your Query Right Now</span>
+          <ul class="ti-list">
+            <li>&bull; <b>Goal:</b> Generate a response for a specific prompt.</li>
+            <li>&bull; <b>Compute:</b> Seconds or milliseconds on pooled data center GPUs.</li>
+            <li>&bull; <b>Math:</b> Forward pass only (weights are fixed/frozen).</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -425,46 +453,41 @@
   <div class="controls">
     <div class="ctrl-group">
       <button class="btn" id="prev-btn">&larr; Back</button>
-      <button class="btn" id="next-btn">Next &rarr;</button>
+      <button class="btn primary" id="next-btn">Next &rarr;</button>
     </div>
-    <span class="step-count" id="step-count">STEP 1 / 4</span>
-    <button class="btn play" id="play-btn">&#10074;&#10074; Pause</button>
+    <span class="step-count" id="step-count">STEP 1 / 5</span>
   </div>
 </div>
 
 <script>
-  const STEP_DURATION = 7000; // ms per step while autoplaying
   const railMeta = [
-    { label:'Query', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>' },
-    { label:'Relay', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7l8-4z"/></svg>' },
-    { label:'Data Center', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="7" rx="1"/><rect x="4" y="14" width="16" height="7" rx="1"/><circle cx="7.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="7.5" cy="17.5" r="0.8" fill="currentColor" stroke="none"/></svg>' },
-    { label:'GPU Compute', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>' }
+    { label: 'Tokenize', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>' },
+    { label: 'Relay', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7l8-4z"/></svg>' },
+    { label: '3-Layer Stack', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="4" rx="1"/><rect x="4" y="10" width="16" height="4" rx="1"/><rect x="4" y="17" width="16" height="4" rx="1"/></svg>' },
+    { label: 'GPU Math', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>' },
+    { label: 'Training / Infer', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>' }
   ];
 
   const descriptions = {
-    1: "<b>Tokenization &amp; embeddings.</b> Text, images, or audio all get chopped into small chunks called <b>tokens</b>. Each token is then turned into a list of numbers &mdash; a <b>vector</b> &mdash; so the model can do math with it.",
-    2: "<b>API gateway &amp; the network.</b> The request passes an API gateway for authentication and rate limits, then becomes pulses of light travelling through fiber-optic cable at roughly two-thirds the speed of light to a remote data center.",
-    3: "<b>Inside the data center.</b> Thousands of GPUs sit in liquid-cooled racks, linked by ultra-fast switches like NVLink and packed with high-bandwidth memory &mdash; all ready to work on your request together.",
-    4: "<b>Parallel compute.</b> A CPU is a head chef: a few cores, one complex step at a time. A GPU is 10,000 line cooks: thousands of simple cores doing identical math simultaneously &mdash; exactly what billions of neural-network calculations need."
+    1: "<b>Top Layer (Application &amp; Tokenization).</b> When you submit text in an application, it gets segmented into <b>tokens</b> and converted into mathematical <b>vector embeddings</b>.",
+    2: "<b>API to Cloud Transit.</b> The client app sends an HTTP API request across load balancers into <b>Hyperscaler cloud networks</b> (AWS, Google Cloud, Azure), routing it directly to data centers.",
+    3: "<b>The 3-Layer Tech Stack.</b> 1) <b>Top Layer:</b> User applications &amp; APIs. 2) <b>Middle Layer:</b> Hyperscalers providing cloud infrastructure &amp; networking. 3) <b>Bottom Layer:</b> Physical silicon chips.",
+    4: "<b>Bottom Layer (Hardware Compute).</b> Unlike CPUs designed for sequential tasks, <b>GPUs &amp; TPUs</b> use thousands of small parallel cores to compute giant matrix multiplications at once.",
+    5: "<b>Training vs. Inference.</b> <b>Training</b> creates the model by calculating weight updates over months across clusters. <b>Inference</b> runs a forward pass on fixed weights to answer your prompt in real-time."
   };
 
-  const tokens = ["What"," should"," I"," make"," for"," dinner"," with"," chicken"," and"," rice?"];
+  const tokens = ["What", " should", " I", " make", " for", " dinner", " with", " chicken", " and", " rice?"];
 
   let currentStep = 1;
-  const totalSteps = 4;
-  let playing = true;
-  let timerStart = null;
-  let rafId = null;
+  const totalSteps = 5;
 
   const railEl = document.getElementById('rail');
-  const progressFill = document.getElementById('progress-fill');
-  const playBtn = document.getElementById('play-btn');
   const prevBtn = document.getElementById('prev-btn');
   const nextBtn = document.getElementById('next-btn');
   const stepCount = document.getElementById('step-count');
   const descBox = document.getElementById('step-description');
 
-  function buildRail(){
+  function buildRail() {
     railEl.innerHTML = '';
     railMeta.forEach((m, i) => {
       const idx = i + 1;
@@ -472,9 +495,9 @@
       node.className = 'rail-node';
       node.dataset.step = idx;
       node.innerHTML = `<div class="rail-dot">${m.icon}</div><div class="rail-label">${m.label}</div>`;
-      node.addEventListener('click', () => goToStep(idx, true));
+      node.addEventListener('click', () => goToStep(idx));
       railEl.appendChild(node);
-      if (idx < totalSteps){
+      if (idx < totalSteps) {
         const line = document.createElement('div');
         line.className = 'rail-line';
         line.innerHTML = '<div class="rail-line-fill"></div>';
@@ -484,7 +507,7 @@
     });
   }
 
-  function updateRail(){
+  function updateRail() {
     document.querySelectorAll('.rail-node').forEach(node => {
       const idx = parseInt(node.dataset.step, 10);
       node.classList.toggle('active', idx === currentStep);
@@ -497,7 +520,7 @@
     });
   }
 
-  function initTokenAnimation(){
+  function initTokenAnimation() {
     const container = document.getElementById('tokens-container');
     const vectorBox = document.getElementById('vector-box');
     container.innerHTML = '';
@@ -507,12 +530,12 @@
       chip.className = 'token-chip';
       chip.textContent = t;
       container.appendChild(chip);
-      setTimeout(() => chip.classList.add('show'), 150 + i * 130);
+      setTimeout(() => chip.classList.add('show'), 100 + i * 80);
     });
-    setTimeout(() => vectorBox.classList.add('show'), 150 + tokens.length * 130 + 250);
+    setTimeout(() => vectorBox.classList.add('show'), 100 + tokens.length * 80 + 150);
   }
 
-  function updateView(){
+  function updateView() {
     document.querySelectorAll('.step-content').forEach((panel, i) => {
       panel.classList.toggle('active', i + 1 === currentStep);
     });
@@ -522,46 +545,15 @@
     prevBtn.disabled = currentStep === 1;
     nextBtn.textContent = currentStep === totalSteps ? 'Restart \u21bb' : 'Next \u2192';
     if (currentStep === 1) initTokenAnimation();
-    restartTimer();
   }
 
-  function goToStep(step, manual){
+  function goToStep(step) {
     currentStep = ((step - 1) % totalSteps + totalSteps) % totalSteps + 1;
     updateView();
-    if (manual){ playing = true; playBtn.innerHTML = '&#10074;&#10074; Pause'; }
   }
 
-  function restartTimer(){
-    cancelAnimationFrame(rafId);
-    progressFill.classList.remove('animating');
-    progressFill.style.width = '0%';
-    if (!playing) return;
-    requestAnimationFrame(() => {
-      progressFill.classList.add('animating');
-      progressFill.style.transitionDuration = STEP_DURATION + 'ms';
-      progressFill.style.width = '100%';
-    });
-    timerStart = Date.now();
-    rafId = setTimeout(() => { if (playing) goToStep(currentStep + 1); }, STEP_DURATION);
-  }
-
-  function togglePlay(){
-    playing = !playing;
-    playBtn.innerHTML = playing ? '&#10074;&#10074; Pause' : '&#9654; Play';
-    if (playing){ restartTimer(); }
-    else {
-      clearTimeout(rafId);
-      progressFill.classList.remove('animating');
-    }
-  }
-
-  prevBtn.addEventListener('click', () => goToStep(currentStep - 1, true));
-  nextBtn.addEventListener('click', () => goToStep(currentStep + 1, true));
-  playBtn.addEventListener('click', togglePlay);
-
-  const stageEl = document.querySelector('.stage');
-  stageEl.addEventListener('mouseenter', () => { if (playing){ clearTimeout(rafId); progressFill.classList.remove('animating'); } });
-  stageEl.addEventListener('mouseleave', () => { if (playing) restartTimer(); });
+  prevBtn.addEventListener('click', () => goToStep(currentStep - 1));
+  nextBtn.addEventListener('click', () => goToStep(currentStep + 1));
 
   buildRail();
   updateView();
