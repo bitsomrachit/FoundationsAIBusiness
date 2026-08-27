@@ -5,28 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Turing Test Demo</title>
 
-    <!-- Tailwind CSS with custom lensred theme extensions -->
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        lensred: {
-                            DEFAULT: '#8C1515',
-                            dark: '#6B1010',
-                            light: '#FAF0F0',
-                            accent: '#B81D1D'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
 
-    <!-- React & Babel CDNs -->
+    <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+    <!-- Babel to compile JSX in browser -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
@@ -36,20 +22,24 @@
         }
     </style>
 </head>
-<body class="bg-stone-100 font-sans antialiased text-stone-900">
+<body class="bg-stone-100 font-sans antialiased text-gray-800">
     
     <div id="root"></div>
 
     <script type="text/babel">
         function TuringTestDemo() {
-            const [step, setStep] = React.useState('setup'); 
-            const [topic, setTopic] = React.useState('Explain quantum computing in one sentence.');
-            const [aiText, setAiText] = React.useState('Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems too complex for classical computers.');
+            // Directly start at typing phase (no setup step)
+            const [step, setStep] = React.useState('typing'); 
+            
+            // Day-to-day relatable prompt
+            const topic = "Describe your ideal lazy Sunday morning in 2-3 sentences.";
+            
+            // AI response engineered with natural human typos, missing apostrophes, and informal pacing
+            const aiText = "honestly just sleeping in till like 10am and getting iced coffee while staying in sweatpants all day. maybe watch a movie or two if im feeling lazy, no alarm clocks allowed lol.";
+            
             const [studentText, setStudentText] = React.useState('');
             const [options, setOptions] = React.useState([]);
             const [isPeeking, setIsPeeking] = React.useState(false);
-
-            const startTypingPhase = () => setStep('typing');
 
             const startVotingPhase = () => {
                 const isStudentFirst = Math.random() > 0.5;
@@ -71,134 +61,102 @@
 
             const resetDemo = () => {
                 setStudentText('');
-                setStep('setup');
+                setStep('typing');
             };
 
             return (
                 <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
-                    <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-stone-200">
+                    <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-red-900/10">
                     
-                        {/* Header in LensRed */}
-                        <div className="bg-lensred text-white p-6 text-center shadow-md border-b-4 border-lensred-dark relative">
+                        {/* Header styled in LensRed Theme (#a30000 / bg-red-900) */}
+                        <div className="bg-red-900 text-white p-6 text-center shadow-md z-10 relative">
                             <h1 className="text-4xl font-bold tracking-wider mb-2">Is This AI?</h1>
-                            <p className="text-red-100 uppercase tracking-widest text-sm font-semibold">Live Classroom Turing Test</p>
+                            <p className="text-red-200 uppercase tracking-widest text-sm font-semibold">Live Classroom Turing Test</p>
                         </div>
 
                         <div className="p-8 sm:p-12">
-                        
-                            {/* STEP 1: PROFESSOR SETUP */}
-                            {step === 'setup' && (
-                                <div className="space-y-8">
-                                    <div className="bg-lensred-light border-l-4 border-lensred p-4 rounded-r-lg">
-                                        <p className="text-lensred-dark font-semibold">
-                                            Professor Setup: Fill this out before bringing the student up.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-stone-700 mb-2">The Prompt / Question:</label>
-                                        <input
-                                            type="text"
-                                            className="w-full p-4 text-lg border border-stone-300 rounded-xl focus:ring-4 focus:ring-red-100 focus:border-lensred outline-none transition-all"
-                                            value={topic}
-                                            onChange={(e) => setTopic(e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-stone-700 mb-2">Pre-generated AI Response:</label>
-                                        <textarea
-                                            className="w-full p-4 text-lg border border-stone-300 rounded-xl h-40 focus:ring-4 focus:ring-red-100 focus:border-lensred outline-none transition-all"
-                                            value={aiText}
-                                            onChange={(e) => setAiText(e.target.value)}
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={startTypingPhase}
-                                        className="w-full bg-lensred hover:bg-lensred-dark text-white font-bold py-5 px-6 rounded-xl transition-colors text-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 duration-200"
-                                    >
-                                        Start Live Demonstration
-                                    </button>
-                                </div>
-                            )}
 
-                            {/* STEP 2: STUDENT TYPING */}
+                            {/* STEP 1: STUDENT TYPING */}
                             {step === 'typing' && (
-                                <div className="space-y-8">
-                                    <div className="bg-lensred-light border-l-4 border-lensred p-6 rounded-r-xl shadow-sm">
-                                        <h2 className="text-xl font-bold text-lensred-dark mb-2 uppercase tracking-wide text-sm">The Prompt:</h2>
-                                        <p className="text-2xl font-medium text-stone-800">{topic}</p>
+                                <div className="space-y-8 animate-fade-in">
+                                    <div className="bg-red-50 border-l-4 border-red-800 p-6 rounded-r-xl shadow-sm">
+                                        <h2 className="text-xl font-bold text-red-900 mb-2 uppercase tracking-wide text-sm">The Prompt:</h2>
+                                        <p className="text-2xl font-medium text-gray-900">{topic}</p>
                                     </div>
                                 
                                     <div className="relative">
                                         <div className="flex justify-between items-end mb-3">
-                                            <label className="block text-lg font-bold text-stone-700">Student: Type your answer below</label>
+                                            <label className="block text-lg font-bold text-gray-700">Student: Type your response below</label>
                                             <button 
                                                 onMouseDown={() => setIsPeeking(true)}
                                                 onMouseUp={() => setIsPeeking(false)}
                                                 onMouseLeave={() => setIsPeeking(false)}
-                                                className="text-sm bg-stone-200 hover:bg-stone-300 text-stone-800 py-2 px-4 rounded-lg font-bold cursor-help transition-colors shadow-sm select-none"
+                                                className="text-sm bg-stone-200 hover:bg-stone-300 text-gray-800 py-2 px-4 rounded-lg font-bold cursor-help transition-colors shadow-sm select-none"
                                             >
                                                 Hold to Peek 👀
                                             </button>
                                         </div>
                                         
                                         <textarea
-                                            className={`w-full p-6 border-2 border-stone-300 rounded-xl h-64 text-2xl focus:ring-4 focus:ring-red-100 focus:border-lensred outline-none transition-all duration-300 ${
-                                                isPeeking ? 'blur-none text-black' : 'blur-xl text-stone-400 no-select'
+                                            className={`w-full p-6 border-2 border-stone-300 rounded-xl h-64 text-2xl focus:ring-4 focus:ring-red-200 focus:border-red-800 outline-none transition-all duration-300 ${
+                                                isPeeking ? 'blur-none text-black' : 'blur-xl text-gray-400 no-select'
                                             }`}
-                                            placeholder={isPeeking ? "Keep typing..." : "Your text is blurred on the projector..."}
+                                            placeholder={isPeeking ? "Type your honest thoughts..." : "Text is blurred to the rest of the class..."}
                                             value={studentText}
                                             onChange={(e) => setStudentText(e.target.value)}
                                             spellCheck={isPeeking}
                                         />
                                         
                                         {!isPeeking && (
-                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none text-stone-400 opacity-50">
-                                                <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29"></path></svg>
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none text-gray-400 opacity-40">
+                                                <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29"></path>
+                                                </svg>
                                             </div>
                                         )}
                                     </div>
 
                                     <div className="flex justify-between items-center pt-4">
-                                        <p className="text-sm text-stone-500 font-medium">
-                                            * Class: Don't look! Wait for the voting phase.
+                                        <p className="text-sm text-gray-500 font-medium">
+                                            * Class: Don't peek at the screen yet!
                                         </p>
                                         <button
                                             onClick={startVotingPhase}
                                             disabled={studentText.length < 5}
-                                            className="bg-lensred hover:bg-lensred-dark disabled:bg-stone-300 disabled:text-stone-500 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 text-lg shadow-md hover:shadow-lg"
+                                            className="bg-red-800 hover:bg-red-900 disabled:bg-stone-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 text-lg shadow-md hover:shadow-lg"
                                         >
-                                            Submit Answer
+                                            Submit & Start Voting
                                         </button>
                                     </div>
                                 </div>
                             )}
 
-                            {/* STEP 3 & 4: VOTING AND REVEAL */}
+                            {/* STEP 2 & 3: VOTING AND REVEAL */}
                             {(step === 'voting' || step === 'reveal') && (
-                                <div className="space-y-10">
+                                <div className="space-y-10 animate-fade-in">
                                     <div className="text-center bg-stone-50 p-6 rounded-xl border border-stone-200">
-                                        <h2 className="text-3xl font-bold mb-3 text-stone-900">Which one is the AI?</h2>
-                                        <p className="text-xl text-stone-600">Prompt: <span className="font-bold text-lensred-dark">{topic}</span></p>
+                                        <h2 className="text-3xl font-bold mb-3 text-red-950">Which one is the AI?</h2>
+                                        <p className="text-xl text-gray-600">Prompt: <span className="font-bold text-gray-900">{topic}</span></p>
                                     </div>
 
                                     <div className="grid md:grid-cols-2 gap-8">
                                         {options.map((opt, index) => (
-                                            <div key={index} className="flex flex-col h-full transition-transform duration-300 hover:-translate-y-1">
+                                            <div key={index} className="flex flex-col h-full transform transition-transform duration-300 hover:-translate-y-1">
                                                 <div className="bg-white p-8 rounded-t-2xl flex-grow shadow-lg border border-stone-200 relative overflow-hidden">
-                                                    <div className="absolute top-0 left-0 w-full h-1 bg-lensred-light"></div>
-                                                    <h3 className="text-2xl font-bold text-stone-400 mb-6 pb-4 border-b-2 border-stone-100 uppercase tracking-widest">
+                                                    <div className="absolute top-0 left-0 w-full h-1 bg-red-900/20"></div>
+                                                    <h3 className="text-2xl font-bold text-gray-400 mb-6 pb-4 border-b-2 border-stone-100 uppercase tracking-widest">
                                                         Option {index === 0 ? 'A' : 'B'}
                                                     </h3>
-                                                    <p className="text-2xl leading-relaxed text-stone-800">{opt.text}</p>
+                                                    <p className="text-2xl leading-relaxed text-gray-800">{opt.text}</p>
                                                 </div>
                                                 
-                                                {/* Reveal Banner */}
+                                                {/* Reveal Banner matching theme */}
                                                 <div className={`p-6 rounded-b-2xl text-center text-3xl font-extrabold shadow-lg transition-all duration-700 ${
                                                     step === 'reveal' 
                                                     ? opt.author.includes('AI') 
-                                                        ? 'bg-stone-900 text-white' 
-                                                        : 'bg-lensred text-white'
-                                                    : 'bg-stone-200 text-stone-300' 
+                                                        ? 'bg-gradient-to-r from-red-900 to-red-800 text-white' 
+                                                        : 'bg-gradient-to-r from-emerald-700 to-teal-700 text-white'
+                                                    : 'bg-stone-200 text-stone-400' 
                                                 }`}>
                                                     {step === 'reveal' ? opt.author : '???'}
                                                 </div>
@@ -210,7 +168,7 @@
                                         {step === 'voting' ? (
                                             <button
                                                 onClick={revealAnswers}
-                                                className="bg-lensred hover:bg-lensred-dark text-white font-bold py-5 px-16 rounded-full shadow-2xl transition-all transform hover:scale-105 active:scale-95 text-2xl tracking-wide"
+                                                className="bg-red-900 hover:bg-black text-white font-bold py-5 px-16 rounded-full shadow-2xl transition-all transform hover:scale-105 active:scale-95 text-2xl tracking-wide"
                                             >
                                                 Reveal Authors
                                             </button>
@@ -219,7 +177,7 @@
                                                 onClick={resetDemo}
                                                 className="bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold py-4 px-10 rounded-full transition-colors text-lg"
                                             >
-                                                Start New Round
+                                                Next Round
                                             </button>
                                         )}
                                     </div>
