@@ -202,52 +202,60 @@
   }
   @keyframes travel { 0% { left: -40%; } 100% { left: 100%; } }
 
-  /* ---------- Step 3: 3-Layer Tech Stack ---------- */
-  .stack-container { display: flex; flex-direction: column; gap: 0.65rem; width: 100%; max-width: 680px; }
-  .stack-layer {
-    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
-    padding: 0.85rem 1.2rem; display: flex; align-items: center; justify-content: space-between;
-    position: relative; transition: border-color 0.3s ease;
+  /* ---------- Step 3: GPU Autoregressive Compute ---------- */
+  .ar-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; width: 100%; max-width: 600px; }
+  .ar-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem 1rem; width: 100%; min-height: 70px; }
+  .ar-box-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ar-tokens { display: flex; flex-wrap: wrap; gap: 6px; }
+  
+  .ar-token {
+    background: rgba(157, 123, 255, 0.12); border: 1px solid var(--violet); color: #e3d9ff;
+    padding: 0.3rem 0.6rem; border-radius: 6px; font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem; transition: all 0.3s;
   }
-  .stack-layer.top { border-color: rgba(62, 230, 216, 0.4); }
-  .stack-layer.mid { border-color: rgba(255, 180, 84, 0.4); }
-  .stack-layer.bot { border-color: rgba(157, 123, 255, 0.4); }
-  .layer-badge {
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; padding: 0.25rem 0.5rem;
-    border-radius: 4px; text-transform: uppercase; font-weight: 600; min-width: 90px; text-align: center;
+  .ar-token.generated {
+    background: rgba(62, 230, 216, 0.12); border-color: var(--cyan); color: #c4f7f4;
+    animation: popIn 0.3s ease forwards;
   }
-  .top .layer-badge { background: rgba(62, 230, 216, 0.15); color: var(--cyan); }
-  .mid .layer-badge { background: rgba(255, 180, 84, 0.15); color: var(--amber); }
-  .bot .layer-badge { background: rgba(157, 123, 255, 0.15); color: var(--violet); }
-  .layer-info { flex: 1; margin: 0 1rem; }
-  .layer-info h4 { font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; margin-bottom: 0.15rem; }
-  .layer-info p { font-size: 0.74rem; color: var(--muted); }
-  .layer-examples { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--text); opacity: 0.85; text-align: right; }
+  .ar-token.out {
+    background: rgba(74, 222, 156, 0.12); border-color: var(--green); color: #c4f7e1;
+    opacity: 0; transform: translateY(10px);
+  }
+  .ar-token.out.show { opacity: 1; transform: translateY(0); }
+  
+  .ar-model {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1rem; width: 100%; text-align: center; position: relative; overflow: hidden;
+    transition: all 0.2s ease;
+  }
+  .ar-model.computing {
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px rgba(62, 230, 216, 0.15);
+  }
+  .ar-model.computing::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(62,230,216,0.15), transparent);
+    animation: sweep 0.3s linear;
+  }
+  
+  .model-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+  .model-sub { font-size: 0.7rem; color: var(--muted); }
+  .gpu-mini-grid {
+    display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px;
+    margin-top: 0.8rem; justify-content: center; max-width: 320px; margin-inline: auto;
+  }
+  .gpu-mini-core {
+    height: 12px; border-radius: 2px; background: rgba(138, 148, 166, 0.1); border: 1px solid var(--border);
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .ar-model.computing .gpu-mini-core {
+    background: rgba(74, 222, 156, 0.2); border-color: var(--green);
+  }
 
-  /* ---------- Step 4: CPU vs GPU Compute ---------- */
-  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; }
-  .cmp-card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
-  .cmp-card.cpu { border-color: rgba(255, 180, 84, 0.4); }
-  .cmp-card.gpu { border-color: rgba(74, 222, 156, 0.4); }
-  .cmp-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.2rem; }
-  .cmp-head h4 { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; }
-  .cmp-head span { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); }
-  .cmp-sub { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.6rem; line-height: 1.3; }
-  .cpu-cores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 0.6rem; }
-  .cpu-core {
-    height: 32px; border-radius: 5px; background: rgba(255, 180, 84, 0.08); border: 1px solid var(--amber);
-    display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem; color: var(--amber);
-  }
-  .gpu-cores { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 0.6rem; }
-  .gpu-core {
-    height: 14px; border-radius: 3px; background: rgba(74, 222, 156, 0.15); border: 1px solid var(--green);
-  }
-  .cmp-foot { font-size: 0.72rem; line-height: 1.3; }
-  .cmp-foot.cpu-note { color: var(--muted); }
-  .cmp-foot.gpu-note { color: var(--green); }
+  @keyframes sweep { 0% { left: -100%; } 100% { left: 200%; } }
+  @keyframes popIn { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
 
-  /* ---------- Step 5: Training vs Inference ---------- */
+  /* ---------- Step 4: Training vs Inference ---------- */
   .ti-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; }
   .ti-card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
   .ti-card.train { border-color: rgba(157, 123, 255, 0.4); }
@@ -289,10 +297,8 @@
   @media (max-width: 680px) {
     .stage { padding: 1rem 0.8rem; }
     .rail-label { display: none; }
-    .relay-flow, .cmp, .ti-grid { grid-template-columns: 1fr; flex-direction: column; }
+    .relay-flow, .ti-grid { flex-direction: column; }
     .pipe { width: 2px; height: 16px; flex-basis: 16px; margin: 0 auto; }
-    .stack-layer { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
-    .layer-examples { text-align: left; }
   }
 </style>
 </head>
@@ -301,7 +307,7 @@
 <header>
   <div class="eyebrow">Interactive Lecture Visualizer</div>
   <h1>The Journey of an AI Query</h1>
-  <p>From your prompt down through the 3-layer architecture to silicon hardware compute.</p>
+  <p>From your prompt down to the hardware processing it.</p>
 </header>
 
 <div class="rail-wrap">
@@ -313,7 +319,7 @@
 
     <!-- STEP 1 -->
     <div class="step-content" id="step-1">
-      <div class="step-kicker">Step 1 of 5 &middot; Top Layer (Application)</div>
+      <div class="step-kicker">Step 1 of 4 &middot; Application Layer</div>
       <div class="step-title">Your Question Becomes Numbers</div>
       <div class="device">
         <div class="device-bar"><span></span><span></span><span></span></div>
@@ -329,7 +335,7 @@
 
     <!-- STEP 2 -->
     <div class="step-content" id="step-2">
-      <div class="step-kicker">Step 2 of 5 &middot; Data Transit</div>
+      <div class="step-kicker">Step 2 of 4 &middot; Data Transit</div>
       <div class="step-title">API Payload to Hyperscaler Infrastructure</div>
       <div class="relay-flow">
         <div class="relay-node">
@@ -363,66 +369,41 @@
 
     <!-- STEP 3 -->
     <div class="step-content" id="step-3">
-      <div class="step-kicker">Step 3 of 5 &middot; Architectural Mapping</div>
-      <div class="step-title">The 3 Layers of the Tech Stack</div>
-      <div class="stack-container">
-        <div class="stack-layer top">
-          <div class="layer-badge">Top Layer</div>
-          <div class="layer-info">
-            <h4>Application Layer</h4>
-            <p>End-user interfaces, agents, API integrations, and developer tools.</p>
-          </div>
-          <div class="layer-examples">ChatGPT, Claude, Custom Apps</div>
+      <div class="step-kicker">Step 3 of 4 &middot; Hardware Compute</div>
+      <div class="step-title">Autoregressive GPU Generation</div>
+      <div class="ar-wrap">
+        <div class="ar-box">
+          <div class="ar-box-title">Context Window (Input)</div>
+          <div class="ar-tokens" id="ar-input-container"></div>
         </div>
-        <div class="stack-layer mid">
-          <div class="layer-badge">Middle Layer</div>
-          <div class="layer-info">
-            <h4>Hyperscalers &amp; Infrastructure</h4>
-            <p>Cloud compute platforms, model orchestration, networks, &amp; data centers.</p>
+        
+        <div class="arrow-down" style="margin: 0;">&#8595;</div>
+        
+        <div class="ar-model" id="ar-model-core">
+          <div class="model-title">GPU Cluster / Transformer Model</div>
+          <div class="model-sub">Parallel matrix math computing the next most likely token</div>
+          <div class="gpu-mini-grid">
+            <div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div>
+            <div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div>
+            <div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div>
+            <div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div>
+            <div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div>
+            <div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div><div class="gpu-mini-core"></div>
           </div>
-          <div class="layer-examples">AWS, Google Cloud, Azure, OCI</div>
         </div>
-        <div class="stack-layer bot">
-          <div class="layer-badge">Bottom Layer</div>
-          <div class="layer-info">
-            <h4>Chip &amp; Hardware Layer</h4>
-            <p>Physical silicon accelerators running parallel matrix math at scale.</p>
-          </div>
-          <div class="layer-examples">NVIDIA H100/B200, Google TPU, AMD</div>
+
+        <div class="arrow-down" style="margin: 0;">&#8595;</div>
+
+        <div class="ar-box">
+          <div class="ar-box-title">Generated Stream (Output)</div>
+          <div class="ar-tokens" id="ar-output-container"></div>
         </div>
       </div>
     </div>
 
     <!-- STEP 4 -->
     <div class="step-content" id="step-4">
-      <div class="step-kicker">Step 4 of 5 &middot; Bottom Layer (Hardware)</div>
-      <div class="step-title">GPU Compute: Parallel Matrix Math</div>
-      <div class="cmp">
-        <div class="cmp-card cpu">
-          <div class="cmp-head"><h4>CPU</h4><span>Sequential Logic</span></div>
-          <div class="cmp-sub">Few powerful cores built for complex step-by-step logic.</div>
-          <div class="cpu-cores">
-            <div class="cpu-core">C1</div><div class="cpu-core">C2</div><div class="cpu-core">C3</div><div class="cpu-core">C4</div>
-          </div>
-          <div class="cmp-foot cpu-note">Processes operations one after another in sequence.</div>
-        </div>
-        <div class="cmp-card gpu">
-          <div class="cmp-head"><h4>GPU / TPU</h4><span>Parallel Accelerator</span></div>
-          <div class="cmp-sub">Thousands of efficient cores performing identical tensor math at once.</div>
-          <div class="gpu-cores">
-            <div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div>
-            <div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div>
-            <div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div>
-            <div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div><div class="gpu-core"></div>
-          </div>
-          <div class="cmp-foot gpu-note">Executes trillions of matrix multiplications simultaneously.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- STEP 5 -->
-    <div class="step-content" id="step-5">
-      <div class="step-kicker">Step 5 of 5 &middot; Core AI Workload Distinctions</div>
+      <div class="step-kicker">Step 4 of 4 &middot; Core AI Workloads</div>
       <div class="step-title">Training vs. Inference</div>
       <div class="ti-grid">
         <div class="ti-card train">
@@ -439,8 +420,8 @@
           <span class="ti-tag">Real-Time &middot; Your Query Right Now</span>
           <ul class="ti-list">
             <li>&bull; <b>Goal:</b> Generate a response for a specific prompt.</li>
-            <li>&bull; <b>Compute:</b> Seconds or milliseconds on pooled data center GPUs.</li>
-            <li>&bull; <b>Math:</b> Forward pass only (weights are fixed/frozen).</li>
+            <li>&bull; <b>Compute:</b> Milliseconds on pooled data center GPUs.</li>
+            <li>&bull; <b>Math:</b> Forward pass only (weights are fixed).</li>
           </ul>
         </div>
       </div>
@@ -455,7 +436,7 @@
       <button class="btn" id="prev-btn">&larr; Back</button>
       <button class="btn primary" id="next-btn">Next &rarr;</button>
     </div>
-    <span class="step-count" id="step-count">STEP 1 / 5</span>
+    <span class="step-count" id="step-count">STEP 1 / 4</span>
   </div>
 </div>
 
@@ -463,29 +444,29 @@
   const railMeta = [
     { label: 'Tokenize', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>' },
     { label: 'Relay', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7l8-4z"/></svg>' },
-    { label: '3-Layer Stack', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="4" rx="1"/><rect x="4" y="10" width="16" height="4" rx="1"/><rect x="4" y="17" width="16" height="4" rx="1"/></svg>' },
-    { label: 'GPU Math', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>' },
+    { label: 'Autoregressive', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>' },
     { label: 'Training / Infer', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>' }
   ];
 
   const descriptions = {
-    1: "<b>Top Layer (Application &amp; Tokenization).</b> When you submit text in an application, it gets segmented into <b>tokens</b> and converted into mathematical <b>vector embeddings</b>.",
-    2: "<b>API to Cloud Transit.</b> The client app sends an HTTP API request across load balancers into <b>Hyperscaler cloud networks</b> (AWS, Google Cloud, Azure), routing it directly to data centers.",
-    3: "<b>The 3-Layer Tech Stack.</b> 1) <b>Top Layer:</b> User applications &amp; APIs. 2) <b>Middle Layer:</b> Hyperscalers providing cloud infrastructure &amp; networking. 3) <b>Bottom Layer:</b> Physical silicon chips.",
-    4: "<b>Bottom Layer (Hardware Compute).</b> Unlike CPUs designed for sequential tasks, <b>GPUs &amp; TPUs</b> use thousands of small parallel cores to compute giant matrix multiplications at once.",
-    5: "<b>Training vs. Inference.</b> <b>Training</b> creates the model by calculating weight updates over months across clusters. <b>Inference</b> runs a forward pass on fixed weights to answer your prompt in real-time."
+    1: "<b>Application &amp; Tokenization.</b> When you submit text, it gets segmented into <b>tokens</b> and converted into mathematical <b>vector embeddings</b>.",
+    2: "<b>API to Cloud Transit.</b> The client app sends an HTTP API request across load balancers into <b>Hyperscaler cloud networks</b>, routing it directly to data centers.",
+    3: "<b>GPU Compute &amp; Autoregressive Generation.</b> The GPU cluster processes your input prompt. It predicts and outputs the next word, which is then fed back into the context window to predict the next word—creating a continuous loop.",
+    4: "<b>Training vs. Inference.</b> <b>Training</b> creates the model by calculating weight updates over months across clusters. <b>Inference</b> runs a forward pass on fixed weights to answer your prompt in real-time."
   };
 
   const tokens = ["What", " should", " I", " make", " for", " dinner", " with", " chicken", " and", " rice?"];
 
   let currentStep = 1;
-  const totalSteps = 5;
+  const totalSteps = 4;
 
   const railEl = document.getElementById('rail');
   const prevBtn = document.getElementById('prev-btn');
   const nextBtn = document.getElementById('next-btn');
   const stepCount = document.getElementById('step-count');
   const descBox = document.getElementById('step-description');
+
+  let arTimer;
 
   function buildRail() {
     railEl.innerHTML = '';
@@ -535,16 +516,69 @@
     setTimeout(() => vectorBox.classList.add('show'), 100 + tokens.length * 80 + 150);
   }
 
+  function runArAnimation() {
+    const inContainer = document.getElementById('ar-input-container');
+    const outContainer = document.getElementById('ar-output-container');
+    const modelCore = document.getElementById('ar-model-core');
+
+    const arInputBase = ["What", " should", " I", " make?"];
+    const arOutTokens = ["How", " about", " a", " classic", " chicken", " risotto?"];
+
+    inContainer.innerHTML = arInputBase.map(t => `<div class="ar-token">${t}</div>`).join('');
+    outContainer.innerHTML = '';
+    clearTimeout(arTimer);
+
+    let step = 0;
+
+    function generateNext() {
+      if (currentStep !== 3 || step >= arOutTokens.length) return;
+
+      modelCore.classList.add('computing');
+      setTimeout(() => modelCore.classList.remove('computing'), 350);
+
+      setTimeout(() => {
+        if (currentStep !== 3) return;
+        
+        const tokenText = arOutTokens[step];
+        
+        // Add to output stream
+        const outChip = document.createElement('div');
+        outChip.className = 'ar-token out';
+        outChip.textContent = tokenText;
+        outContainer.appendChild(outChip);
+        
+        // Add back to context window (autoregressive feed-forward)
+        const inChip = document.createElement('div');
+        inChip.className = 'ar-token generated';
+        inChip.textContent = tokenText;
+        inContainer.appendChild(inChip);
+        
+        // trigger transitions
+        setTimeout(() => outChip.classList.add('show'), 50);
+
+        step++;
+        arTimer = setTimeout(generateNext, 1200);
+      }, 400);
+    }
+    
+    arTimer = setTimeout(generateNext, 800);
+  }
+
   function updateView() {
+    clearTimeout(arTimer);
+    
     document.querySelectorAll('.step-content').forEach((panel, i) => {
       panel.classList.toggle('active', i + 1 === currentStep);
     });
+    
     updateRail();
     descBox.innerHTML = descriptions[currentStep];
     stepCount.textContent = `STEP ${currentStep} / ${totalSteps}`;
     prevBtn.disabled = currentStep === 1;
     nextBtn.textContent = currentStep === totalSteps ? 'Restart \u21bb' : 'Next \u2192';
+    
     if (currentStep === 1) initTokenAnimation();
+    if (currentStep === 3) runArAnimation();
   }
 
   function goToStep(step) {
