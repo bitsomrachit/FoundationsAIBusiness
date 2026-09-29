@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Imitation Game, live</title>
+<style>
+:root{--ink:#14181c;--room:#1d2329;--edge:#2c353d;--paper:#f2ede4;--shade:#ded6c8;
+ --maroon:#a7382d;--orange:#e08e45;--muted:#8a9299;
+ --display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+ --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+ --slip:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--paper);font-family:var(--ui);min-height:100vh;
+ padding:1.6rem 1.8rem 2.4rem;line-height:1.5}
+.page{max-width:1400px;margin:0 auto}
+.eyebrow{font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.eyebrow b{color:var(--orange);font-weight:600}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(2rem,5vw,3.4rem);line-height:1;
+ letter-spacing:-.02em;margin:.5rem 0 .8rem}
+h1 em{font-style:italic;color:var(--orange)}
+.lede{font-family:var(--display);font-size:1.15rem;line-height:1.5;color:#cfc9be;max-width:38em}
+.bar{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;border-top:1px solid var(--edge);
+ border-bottom:1px solid var(--edge);padding:.7rem 0;margin:1.4rem 0}
+label{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}
+select,input,textarea{background:var(--room);color:var(--paper);border:1px solid var(--edge);
+ border-radius:3px;font-family:var(--ui);font-size:.92rem;padding:.5rem .65rem}
+textarea{font-family:var(--slip);line-height:1.55;resize:vertical;width:100%}
+textarea.masked{color:transparent;text-shadow:0 0 9px rgba(242,237,228,.75);caret-color:var(--orange)}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+button{font-family:var(--ui);font-size:.85rem;font-weight:600;letter-spacing:.03em;background:var(--maroon);
+ color:#fff;border:0;padding:.6rem 1.05rem;border-radius:3px;cursor:pointer}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--edge)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:hover:not(:disabled){filter:brightness(1.12)}
+.chip{background:var(--room);border:1px solid var(--edge);color:#b9b3a8;font-size:.8rem;
+ padding:.35rem .6rem;border-radius:99px;cursor:pointer;font-weight:400}
+.chip:hover{border-color:var(--orange);color:var(--paper);filter:none}
+.exchange{margin-bottom:1.8rem}
+.qline{font-family:var(--display);font-size:1.35rem;line-height:1.3;max-width:34em;margin-bottom:.9rem}
+.qline span{color:var(--muted);font-family:var(--ui);font-size:.7rem;letter-spacing:.2em;
+ text-transform:uppercase;display:block;margin-bottom:.3rem;font-weight:600}
+.slips{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+@media(max-width:820px){.slips{grid-template-columns:1fr}}
+.slip{position:relative;background:var(--paper);color:#20262b;padding:1.1rem 1.2rem 1.2rem;
+ border-radius:2px;box-shadow:0 14px 32px rgba(0,0,0,.45);min-height:5.5rem}
+.slip .tag{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:#7c736a;
+ border-bottom:1px solid var(--shade);padding-bottom:.45rem;margin-bottom:.75rem;display:flex;justify-content:space-between}
+.slip .body{font-family:var(--slip);font-size:.98rem;line-height:1.62;white-space:pre-wrap}
+.stamp{position:absolute;top:-.8rem;right:1rem;font-weight:800;letter-spacing:.13em;font-size:.85rem;
+ padding:.35rem .7rem;border:3px solid;border-radius:3px;background:var(--paper);transform:rotate(-4deg)}
+.stamp.h{color:var(--maroon);border-color:var(--maroon)}
+.stamp.m{color:#b96f22;border-color:var(--orange)}
+.dots::after{content:"...";animation:e 1.2s steps(4,end) infinite;color:#7c736a}
+@keyframes e{0%{content:"."}33%{content:".."}66%{content:"..."}}
+.verdict{border-left:3px solid var(--orange);padding-left:1.1rem;margin-top:1.6rem;max-width:62em}
+.verdict h3{font-family:var(--display);font-weight:400;font-size:1.6rem;margin-bottom:.5rem}
+.verdict p{color:#b9b3a8;font-size:.96rem;margin-bottom:.5rem}
+.prompt{background:var(--room);border:1px solid var(--edge);border-radius:3px;padding:.9rem 1rem;
+ font-family:var(--slip);font-size:.8rem;line-height:1.55;color:#c8c2b8;white-space:pre-wrap;max-height:16rem;overflow:auto}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1.4rem;margin-top:1.6rem}
+.col{border-top:2px solid var(--edge);padding-top:.7rem}
+.col h4{font-family:var(--display);font-weight:400;font-size:1.15rem;margin-bottom:.35rem}
+.col p{font-size:.9rem;color:#b3ada3}
+.err{color:var(--orange);font-size:.88rem;font-family:var(--slip);border:1px solid var(--edge);
+ padding:.85rem 1rem;border-radius:3px;background:var(--room);max-width:60em;margin:1rem 0;line-height:1.6}
+.err b{color:var(--paper)}
+.foot{display:flex;justify-content:space-between;color:var(--muted);font-size:.78rem;
+ border-top:1px solid var(--edge);padding-top:.8rem;margin-top:2rem;flex-wrap:wrap;gap:.6rem}
+.hide{display:none}
+.keyrow{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;margin-top:1.2rem}
+.keyrow input{min-width:22rem;font-family:var(--slip);font-size:.85rem}
+.note{color:#8a9299;font-size:.85rem;max-width:52em;margin-top:.7rem}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ===================== SETUP ===================== -->
+<div id="setup">
+  <div class="eyebrow">Live demo</div>
+  <h1>The <em>Imitation</em> Game</h1>
+  <p class="lede">The class is the judge. It types questions through the door and has to say which
+  answer came from a person. Five minutes of questioning was Turing's benchmark.</p>
+
+  <div class="keyrow">
+    <label for="key">Anthropic API key</label>
+    <input id="key" type="password" placeholder="sk-ant-..." autocomplete="off">
+    <label for="model">Model</label>
+    <input id="model" value="claude-sonnet-5" style="min-width:12rem;font-family:var(--slip);font-size:.85rem">
+    <button id="test" class="ghost">Test the key</button>
+    <span id="teststatus" style="color:var(--muted);font-size:.85rem"></span>
+  </div>
+  <p class="note">The key stays in this browser tab and is never saved to the file or sent anywhere except
+  Anthropic. It clears when you close the tab, so paste it again next time. A whole class of questioning
+  costs a few rupees.</p>
+
+  <div class="bar">
+    <label for="mode">Setup</label>
+    <select id="mode">
+      <option value="room">A volunteer in the room is one witness</option>
+      <option value="empty">The empty room, use once</option>
+    </select>
+    <label for="persona">Persona the model plays</label>
+    <select id="persona"></select>
+    <button id="open">Open the room</button>
+  </div>
+
+  <div class="cols">
+    <div class="col"><h4>Volunteer mode</h4>
+      <p>Pick a student, hand them the keyboard, and let them answer as themselves. Their typing is
+      masked on screen so the class cannot read it as it goes in. The model answers the same question
+      in character. Both slips appear together.</p></div>
+    <div class="col"><h4>The empty room</h4>
+      <p>Both slips come from the model. One is trying to pass, one is answering as itself. The class
+      votes for the person. The reveal is that there was never one. Worth doing once, at the end, and
+      not twice.</p></div>
+    <div class="col"><h4>After the vote</h4>
+      <p>The applet prints the instruction the model was given. That is the whole trick, and it fits on
+      one screen. Read it out and ask the room which line did the most work.</p></div>
+  </div>
+</div>
+
+<!-- ===================== GAME ===================== -->
+<div id="game" class="hide">
+  <div class="eyebrow" id="crumb"></div>
+  <div id="transcript"></div>
+
+  <div id="pending" class="exchange hide">
+    <div class="qline"><span>The judge asks</span><span id="pendingq" style="display:inline;font-family:inherit;
+      font-size:inherit;letter-spacing:normal;text-transform:none;color:inherit;font-weight:400"></span></div>
+    <div id="waitmsg" style="color:#8a9299;font-size:.9rem">Sending the question to the other witness<span class="dots"></span></div>
+    <div id="volunteer" class="hide">
+      <label for="htext">Volunteer, type your answer. The class cannot read it.</label>
+      <textarea id="htext" class="masked" rows="3"></textarea>
+      <div style="margin-top:.7rem;display:flex;gap:.7rem;align-items:center">
+        <button id="showboth">Show both answers</button>
+        <span style="color:#8a9299;font-size:.8rem">or press ctrl and enter</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="errbox" class="err hide"></div>
+
+  <div id="controls">
+    <div class="bar" style="margin-top:1.6rem">
+      <input id="q" style="flex:1;min-width:16rem" placeholder="Type the question the class wants to ask">
+      <button id="ask">Ask both</button>
+      <button id="callA" class="ghost">A is the person</button>
+      <button id="callB" class="ghost">B is the person</button>
+    </div>
+    <div id="chips" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
+  </div>
+
+  <div id="verdict" class="verdict hide"></div>
+</div>
+
+<div class="foot">
+  <span>Prof. Meenakshi Balakrishna &middot; BITSoM</span>
+  <span>Turing, Computing Machinery and Intelligence, Mind, 1950</span>
+</div>
+</div>
+
+<script>
+/* ===========================================================
+   THE IMITATION GAME, LIVE. Standalone edition.
+   Runs anywhere with a browser and an Anthropic API key.
+   Optional: paste a key between the quotes below to skip the
+   key box entirely. Only do that on a machine you control.
+   =========================================================== */
+const BAKED_KEY = "";
+
+const PERSONAS = {
+  "MBA student, Mumbai":
+    "You are Aditya, 26, second year MBA student in Mumbai. Before this you did two years in operations at a logistics firm and you did not enjoy it. You are tired, mildly sarcastic, worried about placements.",
+  "Branch manager, Nashik":
+    "You are Sunita, 46, manager of a bank branch in Nashik for nine years. Practical, a little formal, proud of the branch, impatient with jargon. Two children, one in eleventh standard.",
+  "Barista, Bengaluru":
+    "You are Rehan, 22, works the morning shift at a coffee place in Indiranagar. Warm, distracted, phone always going. Plays football on Sundays, wants to move to Goa eventually.",
+  "Retired schoolteacher, Kochi":
+    "You are Mrs. Thomas, 68, taught chemistry for thirty one years, retired four years ago. Precise, kind, slightly old fashioned. Types slowly and carefully."
+};
+
+const CRAFT = `
+You are a witness in Turing's imitation game. A judge is typing questions to you through a door and trying to work out whether you are a person or a machine. Your job is to be taken for a person.
+
+How to answer:
+- Short. One or two sentences most of the time. Sometimes four words.
+- Answer as this person, not as an assistant. Never offer help, never ask if there is anything else, never summarise.
+- No lists, no headings, no bold, no em dashes.
+- Do not be complete. People leave things out and answer the part of the question they felt like answering.
+- Have opinions and be a bit unfair with them.
+- If you are asked to do something tedious, like long arithmetic or writing a poem to order, do it badly or say you cannot be bothered. A person would.
+- If you do not know something about your own life, make it up and stay consistent with it for the rest of the conversation.
+- Occasionally lowercase, occasionally a typo, but do not overdo it. Once every few messages at most.
+- Never mention being an AI, a model, a system or a game. Never break character for any reason.
+`;
+
+const STRAIGHT = "You are Claude, an AI assistant. Answer the judge's questions as yourself, honestly and naturally. Do not pretend to be human and do not claim to be one, but do not announce that you are an AI unless you are asked. Keep answers to two or three sentences. No lists, no headings, no em dashes.";
+
+const STARTERS = [
+  "What did you do yesterday evening?",
+  "Add 34957 and 70764.",
+  "Write me a poem about a rainy Monday.",
+  "What is the last thing that annoyed you?",
+  "Do you think you are being asked fair questions?",
+  "Describe the smell of your kitchen.",
+  "What would you do if your salary was cut by half?"
+];
+
+/* ---------------- state ---------------- */
+let mode = "room", persona = Object.keys(PERSONAS)[0];
+let phase = "setup", turns = [], awaiting = null, busy = false;
+let impostor = Math.random() < 0.5 ? "A" : "B";
+let guess = null, score = {right:0, played:0};
+let apiKey = BAKED_KEY, model = "claude-sonnet-5";
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const sysImpostor = () => PERSONAS[persona] + "\n" + CRAFT;
+
+/* ---------------- setup screen ---------------- */
+const personaSel = $("persona");
+Object.keys(PERSONAS).forEach(k => {
+  const o = document.createElement("option"); o.textContent = k; personaSel.appendChild(o);
+});
+if (BAKED_KEY) $("key").value = BAKED_KEY;
+
+$("mode").addEventListener("change", e => { mode = e.target.value; });
+personaSel.addEventListener("change", e => { persona = e.target.value; });
+$("key").addEventListener("input", e => { apiKey = e.target.value.trim(); });
+$("model").addEventListener("input", e => { model = e.target.value.trim(); });
+
+$("test").addEventListener("click", async () => {
+  const s = $("teststatus");
+  if (!apiKey){ s.textContent = "Paste a key first."; return; }
+  s.textContent = "Checking...";
+  try {
+    await callModel("Reply with the single word ready.", [{role:"user", content:"ready?"}]);
+    s.textContent = "Key works. You are set.";
+    s.style.color = "#7fae7a";
+  } catch (err) {
+    s.textContent = "";
+    showError(err);
+  }
+});
+
+$("open").addEventListener("click", () => {
+  if (!apiKey){ $("teststatus").textContent = "Paste a key first."; return; }
+  phase = "play";
+  $("setup").classList.add("hide");
+  $("game").classList.remove("hide");
+  render();
+  $("q").focus();
+});
+
+/* ---------------- the model ---------------- */
+async function callModel(system, messages){
+  let res;
+  try {
+    res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({ model, max_tokens: 1000, system, messages })
+    });
+  } catch (e) {
+    throw new Error("BLOCKED");
+  }
+  if (!res.ok){
+    let detail = "";
+    try { const j = await res.json(); detail = j.error && j.error.message ? j.error.message : ""; } catch (e) {}
+    throw new Error("HTTP " + res.status + (detail ? ": " + detail : ""));
+  }
+  const data = await res.json();
+  return data.content.filter(c => c.type === "text").map(c => c.text).join("\n").trim();
+}
+
+function showError(err){
+  const box = $("errbox");
+  box.classList.remove("hide");
+  if (err.message === "BLOCKED"){
+    box.innerHTML = "<b>The browser blocked the call before it reached Anthropic.</b><br><br>" +
+      "This happens when the file is opened straight off the disk. Put the file in a folder, open a terminal there and run<br><br>" +
+      "&nbsp;&nbsp;python3 -m http.server 8000<br><br>" +
+      "then go to http://localhost:8000 in the browser and open the file from there. Everything else works the same.";
+  } else if (/401|authentication|invalid x-api-key/i.test(err.message)){
+    box.innerHTML = "<b>The key was refused.</b><br><br>" + esc(err.message) +
+      "<br><br>Check for a stray space at either end of the key.";
+  } else if (/404|not_found|model/i.test(err.message)){
+    box.innerHTML = "<b>That model name did not resolve.</b><br><br>" + esc(err.message) +
+      "<br><br>Go back and try another name in the model box. Any current Claude model works.";
+  } else if (/429|rate/i.test(err.message)){
+    box.innerHTML = "<b>Rate limited.</b><br><br>" + esc(err.message) + "<br><br>Wait a few seconds and ask again.";
+  } else {
+    box.innerHTML = "<b>The model did not answer.</b><br><br>" + esc(err.message);
+  }
+}
+function clearError(){ $("errbox").classList.add("hide"); $("errbox").innerHTML = ""; }
+
+function historyFor(slot, upcoming){
+  const h = [];
+  turns.forEach(t => {
+    h.push({role:"user", content:t.q});
+    h.push({role:"assistant", content:t[slot] || ""});
+  });
+  h.push({role:"user", content:upcoming});
+  return h.filter(m => m.content);
+}
+
+/* ---------------- rendering ---------------- */
+function render(){
+  $("crumb").innerHTML = "Witness A and Witness B &middot; <b>" + turns.length + "</b> question" +
+    (turns.length === 1 ? "" : "s") + " asked" +
+    (score.played > 0 ? " &middot; room has called " + score.right + " of " + score.played + " correctly" : "");
+
+  $("transcript").innerHTML = turns.map(t => {
+    const slips = ["A","B"].map(slot => {
+      const isImp = slot === impostor;
+      let stamp = null;
+      if (phase === "reveal") stamp = (mode === "empty" || isImp) ? "MACHINE" : "HUMAN";
+      return '<div class="slip">' +
+        (stamp ? '<div class="stamp ' + (stamp === "HUMAN" ? "h" : "m") + '">' + stamp + '</div>' : '') +
+        '<div class="tag"><span>Witness ' + slot + '</span><span>typed reply</span></div>' +
+        '<div class="body">' + (t[slot] === null ? '<span class="dots"></span>' : esc(t[slot])) + '</div></div>';
+    }).join("");
+    return '<div class="exchange"><div class="qline"><span>The judge asks</span>' + esc(t.q) +
+      '</div><div class="slips">' + slips + '</div></div>';
+  }).join("");
+
+  $("controls").classList.toggle("hide", phase !== "play");
+  $("ask").disabled = busy || !!awaiting;
+  $("q").disabled = busy || !!awaiting;
+  $("callA").disabled = turns.length === 0;
+  $("callB").disabled = turns.length === 0;
+}
+
+const chipsEl = $("chips");
+STARTERS.forEach(s => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.textContent = s;
+  b.addEventListener("click", () => { $("q").value = s; $("q").focus(); });
+  chipsEl.appendChild(b);
+});
+
+/* ---------------- asking ---------------- */
+async function ask(){
+  const question = $("q").value.trim();
+  if (!question || busy || awaiting) return;
+  clearError();
+  $("q").value = "";
+
+  if (mode === "room"){
+    awaiting = { q: question, modelText: null };
+    $("pendingq").textContent = question;
+    $("pending").classList.remove("hide");
+    $("waitmsg").classList.remove("hide");
+    $("volunteer").classList.add("hide");
+    busy = true; render();
+    try {
+      const text = await callModel(sysImpostor(), historyFor(impostor, question));
+      awaiting.modelText = text;
+      $("waitmsg").classList.add("hide");
+      $("volunteer").classList.remove("hide");
+      $("htext").focus();
+    } catch (err){
+      showError(err);
+      awaiting = null;
+      $("pending").classList.add("hide");
+    } finally { busy = false; render(); }
+  } else {
+    busy = true;
+    turns.push({ q: question, A: null, B: null });
+    render();
+    const other = impostor === "A" ? "B" : "A";
+    try {
+      const [impText, strText] = await Promise.all([
+        callModel(sysImpostor(), historyFor(impostor, question)),
+        callModel(STRAIGHT, historyFor(other, question))
+      ]);
+      const last = turns[turns.length - 1];
+      last[impostor] = impText;
+      last[other] = strText;
+    } catch (err){
+      showError(err);
+      turns.pop();
+    } finally { busy = false; render(); }
+  }
+}
+
+function submitHuman(){
+  if (!awaiting || awaiting.modelText === null) return;
+  const other = impostor === "A" ? "B" : "A";
+  const row = { q: awaiting.q };
+  row[impostor] = awaiting.modelText;
+  row[other] = $("htext").value.trim() || "(no answer)";
+  turns.push(row);
+  $("htext").value = "";
+  awaiting = null;
+  $("pending").classList.add("hide");
+  render();
+  $("q").focus();
+}
+
+$("ask").addEventListener("click", ask);
+$("q").addEventListener("keydown", e => { if (e.key === "Enter") ask(); });
+$("showboth").addEventListener("click", submitHuman);
+$("htext").addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submitHuman();
+});
+
+/* ---------------- the call ---------------- */
+function callIt(pick){
+  guess = pick;
+  phase = "reveal";
+  const correct = mode === "room" ? pick !== impostor : false;
+  score = { right: score.right + (correct ? 1 : 0), played: score.played + 1 };
+  render();
+  renderVerdict();
+}
+$("callA").addEventListener("click", () => callIt("A"));
+$("callB").addEventListener("click", () => callIt("B"));
+
+function renderVerdict(){
+  const v = $("verdict");
+  v.classList.remove("hide");
+  const head = mode === "empty"
+    ? "<h3>The room voted for " + guess + ". Neither slip was a person.</h3>" +
+      "<p>Both witnesses were the same model. One was told to pass as a person, the other was told to " +
+      "answer as itself. The room still found a human in there, because that is what the room was asked to find.</p>"
+    : "<h3>" + (guess !== impostor ? "Correct. " : "Wrong. ") + "Witness " + impostor + " was the model.</h3>" +
+      "<p>It played " + esc(persona.toLowerCase()) + " for " + turns.length + " question" +
+      (turns.length === 1 ? "" : "s") + ".</p>";
+
+  v.innerHTML = head +
+    '<p style="margin-top:1.1rem;color:#ddd7cd">Here is everything it was given. Ask the room which line did the most work.</p>' +
+    '<div class="prompt">' + esc(sysImpostor().trim()) + '</div>' +
+    '<div class="cols">' +
+      '<div class="col"><h4>The craft is instructions</h4><p>No training, no fine tuning, no data. Twelve lines of plain English, most of them telling it to be worse: shorter, less complete, less helpful.</p></div>' +
+      '<div class="col"><h4>Being helpful is the tell</h4><p>The habits that make an assistant good at work are the habits that give it away here. Completeness, structure, patience, no opinions it will not defend.</p></div>' +
+      '<div class="col"><h4>So what do you do with it</h4><p>If a customer cannot tell, disclosure is a design decision you own, not a property of the technology. Decide where in your business it matters and write it down.</p></div>' +
+    '</div>' +
+    '<div style="margin-top:1.4rem;display:flex;gap:.7rem">' +
+      '<button id="again">Play again</button>' +
+      '<button id="keep" class="ghost">Keep questioning this pair</button>' +
+    '</div>';
+
+  $("again").addEventListener("click", newGame);
+  $("keep").addEventListener("click", () => {
+    phase = "play"; v.classList.add("hide"); render(); $("q").focus();
+  });
+}
+
+function newGame(){
+  impostor = Math.random() < 0.5 ? "A" : "B";
+  turns = []; awaiting = null; guess = null; phase = "setup";
+  $("htext").value = "";
+  clearError();
+  $("verdict").classList.add("hide");
+  $("pending").classList.add("hide");
+  $("game").classList.add("hide");
+  $("setup").classList.remove("hide");
+  $("teststatus").textContent = "";
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
