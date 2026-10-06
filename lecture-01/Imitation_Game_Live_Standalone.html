@@ -77,6 +77,7 @@ button:hover:not(:disabled){filter:brightness(1.12)}
     <select id="preset">
       <option value="ollama">Ollama (local)</option>
       <option value="groq">Groq</option>
+      <option value="xai">xAI Grok</option>
       <option value="openrouter">OpenRouter</option>
       <option value="custom">Custom</option>
     </select>
@@ -147,13 +148,17 @@ button:hover:not(:disabled){filter:brightness(1.12)}
    the volunteer's reply.
    =========================================================== */
 
-/* Paste your Groq key between the quotes to skip the key box entirely.
+/* Paste your Groq (gsk_...) or xAI (xai-...) key between the quotes to skip the key box.
    Only do this on a machine you control, and do not share this file afterwards. */
-const BAKED_KEY = "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";
+const BAKED_KEY = "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";
+const bakedFor = url =>
+  (BAKED_KEY.startsWith("gsk_") && url.includes("api.groq.com")) ||
+  (BAKED_KEY.startsWith("xai-") && url.includes("api.x.ai"));
 
 const PRESETS = {
   ollama:     { url: "http://localhost:11434/v1/chat/completions",        model: "llama3.1" },
   groq:       { url: "https://api.groq.com/openai/v1/chat/completions",   model: "openai/gpt-oss-120b" },
+  xai:        { url: "https://api.x.ai/v1/chat/completions",             model: "grok-4" },
   openrouter: { url: "https://openrouter.ai/api/v1/chat/completions",     model: "meta-llama/llama-3.3-70b-instruct" },
   custom:     { url: "", model: "" }
 };
@@ -212,7 +217,7 @@ $("endpoint").value = endpoint;
 $("model").value = model;
 $("preset").value = "groq";
 const syncKeyBox = () => {
-  $("keywrap").style.display = (BAKED_KEY && endpoint.includes("api.groq.com")) ? "none" : "contents";
+  $("keywrap").style.display = (BAKED_KEY && bakedFor(endpoint)) ? "none" : "contents";
 };
 syncKeyBox();
 
@@ -253,7 +258,7 @@ $("open").addEventListener("click", () => {
 async function callModel(system, messages, temperature){
   let res;
   const headers = { "content-type": "application/json" };
-  const key = apiKey || (endpoint.includes("api.groq.com") ? BAKED_KEY : "");
+  const key = apiKey || (bakedFor(endpoint) ? BAKED_KEY : "");
   if (key) headers["authorization"] = "Bearer " + key;
   try {
     res = await fetch(endpoint, {
@@ -288,7 +293,9 @@ function showError(err){
       "For Ollama: make sure it is running, and open this file through a local server instead of straight off the disk:<br><br>" +
       "&nbsp;&nbsp;python3 -m http.server 8000<br><br>then go to http://localhost:8000.";
   } else if (/401|403|auth|api key/i.test(m)){
-    box.innerHTML = "<b>The key was refused.</b><br><br>" + esc(m);
+    box.innerHTML = "<b>The key was refused.</b><br><br>" + esc(m) +
+      "<br><br>Check that the Provider matches the key: Groq keys start with gsk_, xAI Grok keys start with xai-. " +
+      "Also check for a stray space, and for xAI that the account has credits.";
   } else if (/404|not found|model/i.test(m)){
     box.innerHTML = "<b>Model not found.</b><br><br>" + esc(m) + "<br><br>" +
       (endpoint.includes("localhost")
